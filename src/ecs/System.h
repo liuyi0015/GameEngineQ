@@ -8,17 +8,15 @@
 
 
 class Scene;
-
 namespace ecs {
     class System {
     public:
-        //这里只用来作为参数，普通system应该是scene的成员
+        //这里只是用指针成员代替传参，普通system是scene的成员，全局system与scene独立，反正都不是包含scene
         std::shared_ptr<Scene> scene;
-        System()=delete;
-        explicit System(std::shared_ptr<Scene> scene) :
-            scene(std::move(scene)) {
+        // System()=delete;
+        explicit System(const std::shared_ptr<Scene>& scene) :
+            scene(scene) {
         }
-
         virtual ~System() = default;
         virtual void start(){};
         virtual void update(double deltaTime){};

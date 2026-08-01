@@ -10,43 +10,13 @@
 
 #include "../ecs/System.h"
 #include "../ecs/Scene.h"
-//响应事件不是输入事件
-struct LeftMouseColliderEvents {
-    std::string pressed_event;
-    std::string released_event;
-    std::string clicked_event;
-};
-struct RightMouseColliderEvents {
-    std::string pressed_event;
-    std::string released_event;
-    std::string clicked_event;
-};
-struct WheelMouseColliderEvents {
-    std::string up_event;
-    std::string down_event;
-    std::string pressed_event;
-    std::string released_event;
-    std::string clicked_event;
-};
-struct MoveMouseColliderEvents {
-    std::string move_event;
-    std::string drag_event;
-};
-struct MouseEventParam {
-    float x,y;
-};
-struct MouseColliderFlag {
-    float w;
-    float h;
-    int order;
-    bool block;
-};
-
-template<typename T>
+#include "UIComponents.h"
+#include "../ecs/Util.h"
+template<typename EventType>
 static std::vector<Entity> getSortedMouseColliders(const std::shared_ptr<Scene>&scene) {
     auto entities = std::vector<Entity>();
-    for (auto entity:scene->getEntities()) {
-        if (scene->getComponent<MouseColliderFlag>(entity).has_value()&&scene->getComponent<T>(entity).has_value()) {
+    for (auto entity : ecs::getEntities<EventType>(scene)) {
+        if (ecs::getComponent<MouseColliderFlag>(scene,entity).has_value()&&ecs::getComponent<EventType>(scene,entity).has_value()) {
             entities.push_back(entity);
         }
     }
@@ -61,19 +31,15 @@ public:
 
     void leftMousePressed(const std::any& param);
     void leftMouseReleased(const std::any& param);
-    void leftMouseClicked(const std::any& param);
     void rightMousePressed(const std::any& param);
     void rightMouseReleased(const std::any& param);
-    void rightMouseClicked(const std::any& param);
-    void wheelMouesUp(const std::any& param);
-    void wheelMouseDown(const std::any& param);
-    void wheelMousePressed(const std::any& any);
-    void wheelMouseReleased(const std::any& any);
-    void wheelMouseClicked(const std::any& any);
+    void middleMousePressed(const std::any& param);
+    void middleMouseReleased(const std::any& param);
+    void wheelMouse(const std::any& param);
     void mouseMoved(const std::any& param);
-    void mouseDragged(const std::any& param);
 
-    void update(double deltaTime) override{};
+    void update(double deltaTime) override{}
+
     void fixed_update(double deltaTime) override{};
     void draw() override{};
 

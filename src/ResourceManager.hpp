@@ -6,6 +6,7 @@
 #include <string>
 
 #include "SDL3/SDL_render.h"
+#include "SDL3_image/SDL_image.h"
 #include "SDL3_ttf/SDL_ttf.h"
 
 template<typename T>
@@ -63,6 +64,7 @@ private:
     ResourceCache<SDL_Surface> m_surfaceCache;
     ResourceCache<SDL_Texture> m_textureCache;
     ResourceCache<TTF_Font> m_fontCache;
+    ResourceCache<IMG_Animation> m_animationCache;
 
 public:
     // 禁止拷贝和赋值
@@ -78,6 +80,7 @@ public:
     ResourceCache<SDL_Surface>& getSurfaceCache() { return m_surfaceCache; }
     ResourceCache<SDL_Texture>& getTextureCache() { return m_textureCache; }
     ResourceCache<TTF_Font>& getFontCache() { return m_fontCache; }
+    ResourceCache<IMG_Animation>& getAnimationCache() { return m_animationCache; }
 
 };
 

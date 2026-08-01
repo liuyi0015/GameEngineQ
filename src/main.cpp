@@ -9,6 +9,7 @@
 #include "Context.hpp"
 #include "EventDispatcher.h"
 #include "ResourceManager.hpp"
+#include "3d/soft-render/MyRenderer.h"
 #include "demogame/DemogameApplication.h"
 #include "SDL3_image/SDL_image.h"
 
@@ -21,7 +22,7 @@ void init() {
 	ApplicationContext::getInstance().set("config",config);
 	//初始化SDL，没有的额外参数，用到会自动初始化
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS|SDL_INIT_AUDIO);
-	AudioPlayer::getInstance().init();
+	AudioPlayer::init();
 	// 创建窗口
 	SDL_Surface *icon = IMG_Load(config.WINDOW_ICON.c_str());
 	SDL_Window* window = SDL_CreateWindow(config.WINDOW_TITLE.c_str(), config.WINDOW_WIDTH, config.WINDOW_HEIGHT,0);
@@ -41,13 +42,16 @@ void init() {
 	TTF_Init();
 	ApplicationContext::getInstance().set("window", window);
 	ApplicationContext::getInstance().set("renderer", renderer);
-	SDL_Log("init success");
+	//创建自定义渲染器
+	auto render3d_soft=std::make_shared<MyRenderer>();
+	ApplicationContext::getInstance().set("render3d_soft", render3d_soft);
+	std::cout<<"init success"<<std::endl;
 	auto app=std::make_shared<DemogameApplication>();//可替换
 	ApplicationContext::getInstance().set<std::shared_ptr< EcsApplication>>("app", app);
 	app->init();
 }
 void start() {
-	AudioPlayer::loadAndPlay("assets/1.mp3");
+	AudioPlayer::loadAndPlay("assets/2.mp3");
 	ApplicationContext::getInstance().get<std::shared_ptr<EcsApplication>>("app")->start();
 }
 void update(double deltaTime) {
@@ -71,6 +75,8 @@ int main_loop() {
 	double frameTimeAccumulator = 0.0;
 	// 主循环
 	bool isRunning = true;
+	EventDispatcher::getInstance().subscribe("quit",
+		[&isRunning](std::any param){isRunning=false;});
     while (isRunning) {
     	// 计算帧间隔
     	Uint64 currentCounter = SDL_GetPerformanceCounter();
@@ -98,7 +104,7 @@ int main_loop() {
         frameCount++;
         Uint32 now = SDL_GetTicks();
         if (now - fpsLastTick >= 1000) {
-            SDL_Log("FPS: %d", frameCount);
+            std::cout<<"FPS: "<<frameCount<<std::endl;
             frameCount = 0;
             fpsLastTick = now;
         }
@@ -113,15 +119,53 @@ int main_loop() {
     		}
 		    if (event.type==SDL_EVENT_MOUSE_BUTTON_DOWN) {
 			    if (event.button.button==SDL_BUTTON_LEFT) {
-				    SDL_Log("Mouse left button down at (%f, %f)", event.button.x, event.button.y);
+				    std::cout<<"Mouse left button down at "<< event.button.x<<","<<event.button.y<<std::endl;
 			    	MouseEventParam param={event.button.x,event.button.y};
 			    	EventDispatcher::getInstance().publish("left mouse pressed",param);
-			    	AudioPlayer::loadAndPlay("assets/2.mp3");
+			    	// AudioPlayer::loadAndPlay("assets/2.mp3");
 			    }else if (event.button.button==SDL_BUTTON_RIGHT) {
-				    SDL_Log("Mouse right button down at (%f, %f)", event.button.x, event.button.y);
-				    EventDispatcher::getInstance().publish("switch_scene",std::string("scene1"));
-		    		AudioPlayer::loadAndPlay("assets/1.mp3");
+			    	EventDispatcher::getInstance().publish("switch_scene",std::string("scene1"));
+			    	MouseEventParam param={event.button.x,event.button.y};
+			    	EventDispatcher::getInstance().publish("right mouse pressed",param);
+		    		// AudioPlayer::loadAndPlay("assets/1.mp3");
+			    }else if (event.button.button==SDL_BUTTON_MIDDLE) {
+			    	MouseEventParam param={event.button.x,event.button.y};
+			    	EventDispatcher::getInstance().publish("middle mouse pressed",param);
 			    }
+		    }else if (event.type==SDL_EVENT_MOUSE_BUTTON_UP) {
+		    	if (event.button.button==SDL_BUTTON_LEFT) {
+		    		std::cout<<"Mouse left button up at "<< event.button.x<<","<<event.button.y<<std::endl;
+		    		MouseEventParam param={event.button.x,event.button.y};
+		    		EventDispatcher::getInstance().publish("left mouse released",param);
+		    	}else if (event.button.button==SDL_BUTTON_RIGHT) {
+		    		MouseEventParam param={event.button.x,event.button.y};
+		    		EventDispatcher::getInstance().publish("right mouse released",param);
+		    	}else if (event.button.button==SDL_BUTTON_MIDDLE) {
+		    		MouseEventParam param={event.button.x,event.button.y};
+		    		EventDispatcher::getInstance().publish("middle mouse released",param);
+		    	}
+		    }else if (event.type==SDL_EVENT_MOUSE_MOTION) {
+			    MouseEventParam param={event.motion.x,event.motion.y};
+		    	EventDispatcher::getInstance().publish("mouse moved",param);
+		    }else if (event.type==SDL_EVENT_MOUSE_WHEEL){
+		    	EventDispatcher::getInstance().publish("mouse wheeled",event.wheel.y);
+		    }else if (event.type==SDL_EVENT_KEY_DOWN) {
+		    	switch (event.key.key) {
+		    		case SDLK_S:
+		    			EventDispatcher::getInstance().publish("key s",{});
+		    			break;
+		    		case SDLK_W:
+		    			EventDispatcher::getInstance().publish("key w",{});
+		    			break;
+		    		case SDLK_A:
+		    			EventDispatcher::getInstance().publish("key a",{});
+		    			break;
+		    		case SDLK_D:
+		    			EventDispatcher::getInstance().publish("key a",{});
+		    			break;
+		    		default:
+		    			break;
+		    	}
 		    }
 	    }
     	EventDispatcher::getInstance().consumeEvents();

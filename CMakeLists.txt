@@ -5,27 +5,15 @@ project(${projectname})
 set(CMAKE_CXX_STANDARD 17)
 
 # 第1步：编译主程序源文件
-add_executable(${projectname}
-        src/main.cpp
-        src/ecs/Scene.cpp
-        src/ecs/System.cpp
-        src/ecs/MonoBehaviourSystem.cpp
-        src/demogame/MoveSystem.cpp
-        src/demogame/DemogameApplication.cpp
-        src/EventDispatcher.cpp
-        src/ecs/TransformUtil.cpp
-        src/ecs/TransformUtil.h
-        src/ui/MouseColliderSystem.cpp
-        src/ui/MouseColliderSystem.h
-        src/physics2d/Physics2DSystem.cpp
-        src/physics2d/Physics2DSystem.h
-        src/renderer/RenderSystem.cpp
-        src/renderer/RenderSystem.h
-        src/renderer/RenderUtil.cpp
-        src/renderer/RenderUtil.h
-        src/renderer/RenderComponents.h
-
+file(GLOB_RECURSE GAMEENGINE_SOURCES CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
+list(SORT GAMEENGINE_SOURCES)
+
+add_executable(${projectname}
+        ${GAMEENGINE_SOURCES}
+)
+
 #add_subdirectory(mineSweeper)
 # 第4步：添加其他第三方库（有Cmake配置文件）
 # add之前要先设好参数，即：使用ttf默认的字体库

@@ -32,9 +32,6 @@ void RenderUtil::drawRect(SDL_Renderer *renderer, const SDL_FRect rect, const Co
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_RenderFillRect(renderer,&rect);
 }
-void RenderUtil::drawText(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_FRect dstRect, const Color color) {
-
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-
+void RenderUtil::drawText(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_FRect dstRect) {
     SDL_RenderTexture(renderer, texture, nullptr, &dstRect);
 }

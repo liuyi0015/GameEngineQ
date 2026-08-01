@@ -26,7 +26,7 @@ struct CircleRendererFlag {
     int segments;
 };
 struct ImageRendererFlag {
-    std::string resourceId;  // 资源ID，用于从ResourceManager获取纹理
+    std::string textureId;  // 资源ID，用于从ResourceManager获取纹理
     float width = 0.0f;
     float height = 0.0f;
 };

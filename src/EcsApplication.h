@@ -4,6 +4,7 @@
 
 #ifndef GAMEENGINE_APPLICATION_H
 #define GAMEENGINE_APPLICATION_H
+#include <algorithm>
 #include <iostream>
 #include <memory>
 
@@ -13,59 +14,72 @@
 #include "ecs/System.h"
 
 
+struct SystemComparer{
+    bool operator()(const SystemPhaseOrder& a, const SystemPhaseOrder& b) const {
+        return a.second < b.second;
+    }
+};
 class EcsApplication {
 protected:
     std::shared_ptr<Scene > scene;
     std::unordered_map<std::string, std::shared_ptr<Scene>> scenes;
-    std::vector<std::shared_ptr< ecs::System> > global_systems;
+    std::vector<SystemPhaseOrder> global_systems;
 public:
     EcsApplication() {
         scene=std::make_shared<Scene>();
+    }
+    virtual ~EcsApplication() = default;
+
+    virtual void init() {
         EventDispatcher::getInstance().subscribe("switch_scene",[this](std::any param){
             auto newSceneName=std::any_cast<std::string>(param);
             if (scenes.find(newSceneName) != scenes.end()) {
                 scene=scenes[newSceneName];
                 for (const auto& gSystem:global_systems) {
-                    gSystem->scene=scene;
+                    gSystem.first->scene=scene;
                 }
                 start();
             }
         },false,false);
-    }
-    virtual ~EcsApplication() = default;
-
-    virtual void init() {
+        std::sort(global_systems.begin(), global_systems.end(), SystemComparer());
+        for (const auto& [a,scene]:scenes) {
+            std::sort(scene->system_start_orders.begin(), scene->system_start_orders.end(), SystemComparer());
+            std::sort(scene->system_update_orders.begin(), scene->system_update_orders.end(), SystemComparer());
+            std::sort(scene->system_fixed_update_orders.begin(), scene->system_fixed_update_orders.end(), SystemComparer());
+            std::sort(scene->system_draw_orders.begin(), scene->system_draw_orders.end(), SystemComparer());
+        }
     }
     void start() {
         for (const auto& global_system:global_systems) {
-            global_system->start();
+            global_system.first->start();
         }
-        for (const auto& system:scene->systems){
-            system->start();
+        for (const auto& systemOrder:scene->system_start_orders) {
+            systemOrder.first->start();
         }
     }
     void update(double deltaTime) {
         for (const auto& global_system:global_systems) {
-            global_system->update(deltaTime);
+            global_system.first->update(deltaTime);
         }
-        for (const auto& system:scene->systems){
-            system->update(deltaTime);
+        for (const auto& systemOrder:scene->system_update_orders) {
+            systemOrder.first->update(deltaTime);
         }
     }
     void fixed_update(double deltaTime) {
         for (const auto& global_system:global_systems) {
-            global_system->fixed_update(deltaTime);
+            global_system.first->fixed_update(deltaTime);
         }
-        for (const auto& system:scene->systems){
-            system->fixed_update(deltaTime);
+        for (const auto& systemOrder:scene->system_fixed_update_orders) {
+            systemOrder.first->fixed_update(deltaTime);
         }
     }
     void draw() {
         for (const auto& global_system:global_systems) {
-            global_system->draw();
+            global_system.first->draw();
         }
-        for (const auto& system:scene->systems){
-            system->draw();
+        for (const auto& systemOrder:scene->system_draw_orders) {
+
+            systemOrder.first->draw();
         }
     }
 };

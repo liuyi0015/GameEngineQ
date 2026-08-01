@@ -3,6 +3,7 @@
 #include "BaseComponents.h"
 #include "Scene.h"
 #include "System.h"
+#include "Util.h"
 
 namespace ecs {
 
@@ -10,11 +11,7 @@ namespace ecs {
     class MonoBehaviourSystem : public System{
     private:
         [[nodiscard]] bool checkEnabled(Entity entity) const {
-            auto flag=scene->getComponent<TFlagComponent>(entity);
-            if (!flag.has_value()) {
-                return false;
-            }
-            auto enabled=scene->getComponent<Enabled>(entity);
+            auto enabled=getComponent<Enabled>(scene, entity);
             if (!enabled.has_value()) {
                 return false;
             }
@@ -23,11 +20,11 @@ namespace ecs {
     protected:
         Entity curEntity;
     public:
-        explicit MonoBehaviourSystem(std::shared_ptr<Scene> scene)
-            : System(std::move(scene)), curEntity(-1) {
+        explicit MonoBehaviourSystem(const std::shared_ptr<Scene>& scene)
+            : System(scene), curEntity(-1) {
         }
         void start() override {
-            for (const auto entity:scene->getEntities()) {
+            for (const auto entity:getEntities<TFlagComponent>(scene)) {
                 if (!checkEnabled(entity)) {
                     continue;
                 }
@@ -37,7 +34,7 @@ namespace ecs {
         };
         virtual void onStart() {};
         void update(double deltaTime) override {
-            for (const auto entity:scene->getEntities()) {
+            for (const auto entity:getEntities<TFlagComponent>(scene)) {
                 if (!checkEnabled(entity)) {
                     continue;
                 }
@@ -45,9 +42,9 @@ namespace ecs {
                 onUpdate(deltaTime);
             }
         };
-        virtual void onUpdate(float deltaTime) {};
+        virtual void onUpdate(double deltaTime) {};
         void fixed_update(double deltaTime) override {
-            for (const auto entity:scene->getEntities()) {
+            for (const auto entity:getEntities<TFlagComponent>(scene)) {
                 if (!checkEnabled(entity)) {
                     continue;
                 }
@@ -55,9 +52,9 @@ namespace ecs {
                 onFixedUpdate(deltaTime);
             }
         };
-        virtual void onFixedUpdate(float deltaTime) {};
+        virtual void onFixedUpdate(double deltaTime) {};
         void draw() override {
-            for (const auto entity:scene->getEntities()) {
+            for (const auto entity:getEntities<TFlagComponent>(scene)) {
                 if (!checkEnabled(entity)) {
                     continue;
                 }

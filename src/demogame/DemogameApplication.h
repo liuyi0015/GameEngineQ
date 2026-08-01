@@ -4,69 +4,67 @@
 
 #ifndef GAMEENGINE_DEMOGAMEAPPLICATION_H
 #define GAMEENGINE_DEMOGAMEAPPLICATION_H
+#include "CameraInputListenerSystem.h"
 #include "GameComponents.h"
 #include "MoveSystem.h"
+#include "Prefabs.h"
+#include "PrintSystem.h"
+#include "ScalerSystem.h"
 #include "../EcsApplication.h"
 #include "../ResourceManager.hpp"
-#include "../physics2d/Physics2DSystem.h"
-#include "../renderer/RenderSystem.h"
-#include "../renderer/RenderComponents.h"
-#include "../ui/ButtonFactory.h"
+#include "../anim/AnimationComponents.h"
+#include "../anim/AnimationSystem.h"
+#include "../2d/renderer2d/RenderComponents.h"
+#include "../2d/physics2d/Physics2DSystem.h"
+#include "../2d/renderer2d/Render2dSystem.h"
+#include "../2d/transform2d/TransformUtil.h"
 #include "../ui/MouseColliderSystem.h"
 
 class DemogameApplication:public EcsApplication{
 private:
 
-    static std::shared_ptr<Scene> loadScene1() {
+    std::shared_ptr<Scene> loadScene1() {
         auto scene=std::make_shared<Scene>();
         for (int i=0;i<100;i++) {
-            Entity move_entity=scene->createEntity();
-            scene->setComponent<ecs::Enabled>(move_entity, ecs::Enabled{true});
-            scene->setComponent<Name>(move_entity, Name{"entity0"});
-            scene->setComponent<ecs::Transform>(move_entity, ecs::Transform{ecs::Position{50.0f+i*10, 50.0f}, ecs::Rotation{}, ecs::Scale{}});
-            scene->setComponent<DrawableFlag>(move_entity, DrawableFlag{1,{255,255,255,255}});
-            scene->setComponent<RectRendererFlag>(move_entity,{100,100});
-            scene->setComponent<MoveFlag>(move_entity,{400.0f, 400.0f,50,50, 200.0f});
+            Entity move_entity=ecs::createEntity(scene);
+            ecs::setComponent<ecs::Enabled>(scene, move_entity, ecs::Enabled{true});
+            ecs::setComponent<ecs::Name>(scene, move_entity, ecs::Name{"entity0"});
+            ecs::setComponent<Transform>(scene, move_entity, Transform{Position{50.0f+i*10, 50.0f}, Rotation{}, Scale{}});
+            ecs::setComponent<DrawableFlag>(scene, move_entity, DrawableFlag{1,{255,255,255,255}});
+            ecs::setComponent<RectRendererFlag>(scene, move_entity,{100,100});
+            ecs::setComponent<MoveFlag>(scene, move_entity,{400.0f, 400.0f,50,50, 200.0f});
         }
-        Entity circle_entity=scene->createEntity();
-        scene->setComponent<ecs::Enabled>(circle_entity, ecs::Enabled{true});
-        scene->setComponent<Name>(circle_entity, Name{"entity1"});
-        scene->setComponent<ecs::Transform>(circle_entity, ecs::Transform{ecs::Position{200.0f, 100.0f}, ecs::Rotation{}, ecs::Scale{}});
-        scene->setComponent<DrawableFlag>(circle_entity,DrawableFlag{0,{255,0,0,255}});
-        scene->setComponent<CircleRendererFlag>(circle_entity,{  50.0f,32});
-        scene->setComponent<RigidBodyComp>(circle_entity,{b2_dynamicBody});
-
-        scene->systems.push_back(std::make_shared<MoveSystem>(scene));
-        // scene->systems.push_back(std::make_shared<Physics2DSystem>(scene));
+        Prefabs::physicsCircle(scene);
+        Entity camera1=Prefabs::camera(scene);
+        ecs::setComponent<CameraInputListenerFlag>(scene, camera1, {});
+        // ecs::setComponent<ScalerFlag>(scene, camera1,{10});
+        // scene->systems.push_back(std::make_shared<MoveSystem>(scene));
+        auto scalerSystem=std::make_shared<ScalerSystem>(scene);
+        ecs::addSystem(scene,scalerSystem,{});
+        auto physics2dSystem=std::make_shared<Physics2DSystem>(scene);
+        ecs::addSystem(scene,physics2dSystem,{});
+        auto* renderer=ApplicationContext::getInstance().get<SDL_Renderer*>("renderer");
+        auto render2dSystem=std::make_shared<Render2dSystem>(scene, renderer,camera1);
+        ecs::addSystem(scene,render2dSystem,{});
         return scene;
     }
-    static std::shared_ptr<Scene> loadScene2() {
+    std::shared_ptr<Scene> loadScene2() {
         auto scene=std::make_shared<Scene>();
-
-        Entity img1_entity=scene->createEntity();
-        scene->setComponent<Name>(img1_entity, Name{"img1"});
-        scene->setComponent<ecs::Enabled>(img1_entity, ecs::Enabled{true});
-        scene->setComponent<ecs::Transform>(img1_entity, ecs::Transform{ecs::Position{100.0f, 0.0f}, ecs::Rotation{0}, ecs::Scale{}});
-        scene->setComponent<DrawableFlag>(img1_entity,DrawableFlag{0,{255,255,255,255}});
-        scene->setComponent<ImageRendererFlag>(img1_entity,{ "img1-tex",988,852});
-
-        Entity textBtn1_entity=scene->createEntity();
-        scene->setComponent<Name>(textBtn1_entity, Name{"text1"});
-        scene->setComponent<ecs::Enabled>(textBtn1_entity, ecs::Enabled{true});
-        scene->setComponent<ecs::Transform>(textBtn1_entity, ecs::Transform{
-            ecs::Position{400.0f, 100.0f}, ecs::Rotation{}, ecs::Scale{},
-            std::make_optional(img1_entity)
-        });
-        scene->setComponent<DrawableFlag>(textBtn1_entity,DrawableFlag{1,{255,255,255,255}});
-        scene->setComponent<TextRendererFlag>(textBtn1_entity,{ "我是按钮，点我",
-            "font1","text1-surf","text1-tex"});
-        // scene->setComponent<RectRendererFlag>(textBtn1_entity,RectRendererFlag{100,100});
-        scene->setComponent<MouseColliderFlag>(textBtn1_entity,{100,100,0,true});
-        scene->setComponent<LeftMouseColliderEvents>(textBtn1_entity,{"say hello"});
-        EventDispatcher::getInstance().subscribe("say hello",[](const std::any& param) {
-            std::cout<<"hello,GameEngineQ!"<<std::endl;
-        });
+        Entity img1=Prefabs::staticImage(scene);
+        Prefabs::anim1(scene);
+        Prefabs::button(scene,img1);
+        Entity camera1=Prefabs::camera(scene);
         //systems
+        auto* renderer=ApplicationContext::getInstance().get<SDL_Renderer*>("renderer");
+        auto render2dSystem=std::make_shared<Render2dSystem>(scene, renderer,camera1);
+        ecs::addSystem(scene,render2dSystem,{});
+        auto animationSystem=std::make_shared<AnimationSystem>(scene,renderer);
+        ecs::addSystem(scene,animationSystem,{});
+        auto print_system1 = std::make_shared<PrintSystem>(scene,1);
+        ecs::addSystem(scene,print_system1,{10,0,0,0});
+
+        auto print_system2 = std::make_shared<PrintSystem>(scene,2);
+        ecs::addSystem(scene,print_system2,{});
 
         return scene;
     }
@@ -77,9 +75,9 @@ public:
         scenes["scene1"]=loadScene1();
         scenes["scene2"]=loadScene2();
         scene=scenes["scene2"];
-        auto *renderer=ApplicationContext::getInstance().get<SDL_Renderer*>("renderer");
-        global_systems.push_back(std::make_shared<RenderSystem>(scene, renderer));
-        global_systems.push_back(std::make_shared<MouseColliderSystem>(scene));
+
+        global_systems.push_back({std::make_shared<MouseColliderSystem>(scene),1});
+        EcsApplication::init();
     }
 };
 

@@ -5,15 +5,15 @@
 #include "MoveSystem.h"
 
 #include <cassert>
-
+#include "../2d/transform2d/Transform2dComponents.h"
 #include "GameComponents.h"
 
-void MoveSystem::onFixedUpdate(float deltaTime) {
+void MoveSystem::onFixedUpdate(double deltaTime) {
 
-    auto moveFlagComp=scene->getComponent<MoveFlag>(curEntity);
-    auto transformComp = scene->getComponent<ecs::Transform>(curEntity);
+    auto moveFlagComp=ecs::getComponent<MoveFlag>(scene, curEntity);
+    auto transformComp = ecs::getComponent<Transform>(scene, curEntity);
     assert(moveFlagComp.has_value() && transformComp.has_value());
-    ecs::Position& pos = transformComp.value().position;
+    Position& pos = transformComp.value().position;
 
     switch (moveFlagComp.value().currentEdge) {
         case 0:
@@ -46,6 +46,6 @@ void MoveSystem::onFixedUpdate(float deltaTime) {
             break;
         default: ;
     }
-    scene->setComponent<ecs::Transform>(curEntity, transformComp.value());
-    scene->setComponent<MoveFlag>(curEntity, moveFlagComp.value());
+    ecs::setComponent<Transform>(scene, curEntity, transformComp.value());
+    ecs::setComponent<MoveFlag>(scene, curEntity, moveFlagComp.value());
 }

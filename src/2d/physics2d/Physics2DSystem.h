@@ -8,14 +8,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../ecs/System.h"
+#include "../../ecs/System.h"
 #include "box2d/id.h"
-#include "../ecs/Scene.h"
+#include "../../ecs/Scene.h"
 #include "box2d/types.h"
 
-struct RigidBodyComp {
-    b2BodyType type;
-};
 class Physics2DSystem:public ecs::System{
 private:
     b2WorldId worldId{};

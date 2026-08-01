@@ -5,28 +5,22 @@
 #ifndef GAMEENGINE_MOVESYSTEM_H
 #define GAMEENGINE_MOVESYSTEM_H
 #include <memory>
+
+#include "GameComponents.h"
 #include "../ecs/MonoBehaviourSystem.h"
 #include "../ecs/Scene.h"
 
-struct MoveFlag {
-    float x;
-    float y;
-    float width;
-    float height;
-    float speed;
-    int currentEdge = 0;
-};//标记组件
 
 class MoveSystem : public ecs::MonoBehaviourSystem<MoveFlag> {
 public:
-    explicit MoveSystem(std::shared_ptr<Scene> scene)
-        : ecs::MonoBehaviourSystem<MoveFlag>(std::move(scene)) {
+    explicit MoveSystem(const std::shared_ptr<Scene>& scene)
+        : ecs::MonoBehaviourSystem<MoveFlag>(scene) {
         
     }
 
     void onStart() override{};
-    void onUpdate(float deltaTime) override{};
-    void onFixedUpdate(float deltaTime) override;
+    void onUpdate(double deltaTime) override{};
+    void onFixedUpdate(double deltaTime) override;
     void onDraw() const override{};
 };
 

@@ -6,11 +6,18 @@
 #define GAMEENGINE_GAMECOMPONENTS_H
 #include <string>
 
-#include "SDL3/SDL_stdinc.h"
-
-struct Name{
-    std::string value;
+struct MoveFlag {
+    float x;
+    float y;
+    float width;
+    float height;
+    float speed;
+    int currentEdge = 0;
+};//标记组件
+struct ScalerFlag {
+    float speed;
 };
+struct CameraInputListenerFlag {
 
-
+};
 #endif //GAMEENGINE_GAMECOMPONENTS_H

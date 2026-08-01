@@ -4,16 +4,18 @@
 
 #ifndef GAMEENGINE_RENDERSYSTEM_H
 #define GAMEENGINE_RENDERSYSTEM_H
-#include "../ecs/System.h"
+#include "../../ecs/BaseComponents.h"
+#include "../../ecs/System.h"
 #include "SDL3/SDL_render.h"
 
 
-class RenderSystem: public ecs::System {
+class Render2dSystem: public ecs::System {
 private:
     SDL_Renderer* renderer;
+    Entity camera;
 public:
-    explicit RenderSystem(const std::shared_ptr<Scene> &scene,SDL_Renderer* renderer)
-        : System(scene),renderer(renderer){
+    explicit Render2dSystem(const std::shared_ptr<Scene> &scene,SDL_Renderer* renderer, const Entity camera)
+        : System(scene),renderer(renderer),camera(camera){
     }
     void start() override;
     void update(double deltaTime) override{};

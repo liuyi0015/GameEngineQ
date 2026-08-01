@@ -2,26 +2,26 @@
 // Created by XL0002 on 2026/7/22.
 //
 
-#include "RenderSystem.h"
+#include "Render2dSystem.h"
 
 #include <algorithm>
 #include <cassert>
-#include <map>
-#include "../ecs/BaseComponents.h"
 
 #include "RenderComponents.h"
 #include "RenderUtil.h"
-#include "../ecs/Scene.h"
-#include "../ecs/TransformUtil.h"
 #include "SDL3/SDL_log.h"
-#include "../ResourceManager.hpp"
 #include "SDL3_image/SDL_image.h"
+#include "SDL3_ttf/SDL_ttf.h"
+#include "../../ResourceManager.hpp"
+#include "../transform2d/Transform2dComponents.h"
+#include "../transform2d/TransformUtil.h"
+#include "../../ecs/Util.h"
 
-void RenderSystem::start() {
+void Render2dSystem::start() {
     std::vector<std::pair<int,Entity>> drawableEntities;
-    for (const auto entity:scene->getEntities()) {
-        if (scene->getComponent<DrawableFlag>(entity).has_value()) {
-            auto zOrder = scene->getComponent<DrawableFlag>(entity).value().z_order;
+    for (const auto entity:ecs::getEntities<DrawableFlag>(scene)) {
+        if (ecs::getComponent<DrawableFlag>(scene, entity).has_value()) {
+            auto zOrder = ecs::getComponent<DrawableFlag>(scene, entity).value().z_order;
             drawableEntities.push_back({zOrder,entity});
         }
     }
@@ -31,31 +31,31 @@ void RenderSystem::start() {
 
     std::cout<<"绘制"<<drawableEntities.size()<<"个实体"<<std::endl;
     for (const auto [zOrder,entity]:drawableEntities) {
-        if (scene->getComponent<ImageRendererFlag>(entity).has_value()) {
+        if (ecs::getComponent<ImageRendererFlag>(scene, entity).has_value()) {
             //加载图片、缓存
             SDL_Surface* surf1=IMG_Load("assets/1.png");
             std::cout<<surf1->w<<" "<<surf1->h<<std::endl;
             SDL_Texture* tex1=SDL_CreateTextureFromSurface(renderer, surf1);
             ResourceManager::getInstance().getSurfaceCache().set("img1-surf", std::shared_ptr<SDL_Surface>(surf1, SDL_DestroySurface));
             ResourceManager::getInstance().getTextureCache().set("img1-tex", std::shared_ptr<SDL_Texture>(tex1, SDL_DestroyTexture));
-        }else if (scene->getComponent<TextRendererFlag>(entity).has_value()) {
+        }else if (ecs::getComponent<TextRendererFlag>(scene, entity).has_value()) {
             auto font=ResourceManager::getInstance().getFontCache().get("font1");
-            const std::string s=scene->getComponent<TextRendererFlag>(entity).value().text;
-            Color colorToUse = scene->getComponent<DrawableFlag>(entity).value().color;
+            const std::string s=ecs::getComponent<TextRendererFlag>(scene, entity).value().text;
+            Color colorToUse = ecs::getComponent<DrawableFlag>(scene, entity).value().color;
             auto sdlColor = SDL_Color{colorToUse.r, colorToUse.g, colorToUse.b, colorToUse.a};
             SDL_Surface* textSurf = TTF_RenderText_Blended(font.get(), s.c_str(), s.length(), sdlColor);
-            auto textRendererComp = scene->getComponent<TextRendererFlag>(entity);
+            auto textRendererComp = ecs::getComponent<TextRendererFlag>(scene, entity);
             ResourceManager::getInstance().getSurfaceCache().set(textRendererComp.value().surfResourceId, std::shared_ptr<SDL_Surface>(textSurf, SDL_DestroySurface));
             SDL_Texture* textTex=SDL_CreateTextureFromSurface(renderer, textSurf);
             ResourceManager::getInstance().getTextureCache().set(textRendererComp.value().texResourceId, std::shared_ptr<SDL_Texture>(textTex, SDL_DestroyTexture));
         }
     }
 }
-void RenderSystem::draw() {
+void Render2dSystem::draw() {
     std::vector<std::pair<int,Entity>> drawableEntities;
-    for (const auto entity:scene->getEntities()) {
-        if (scene->getComponent<DrawableFlag>(entity).has_value()) {
-            auto zOrder = scene->getComponent<DrawableFlag>(entity).value().z_order;
+    for (const auto entity:ecs::getEntities<DrawableFlag>(scene)) {
+        if (ecs::getComponent<DrawableFlag>(scene, entity).has_value()) {
+            auto zOrder = ecs::getComponent<DrawableFlag>(scene, entity).value().z_order;
             drawableEntities.push_back({zOrder,entity});
         }
     }
@@ -64,29 +64,30 @@ void RenderSystem::draw() {
                      [](const auto &a, const auto &b){ return a.first < b.first; });
 
     for (const auto [zOrder,entity]:drawableEntities) {
-        auto transformComp = scene->getComponent<ecs::Transform>(entity);
+        auto transformComp = ecs::getComponent<Transform>(scene, entity);
         assert(transformComp.has_value());
-        auto drawableFlag= scene->getComponent<DrawableFlag>(entity);
-        auto worldTransform = TransformUtil::computeWorldTransform(transformComp.value(),scene);
+        auto drawableFlag= ecs::getComponent<DrawableFlag>(scene, entity);
+        auto worldTransform = TransformUtil::computeLocalToWorldTransform(transformComp.value(),scene);
+        auto viewTransform = TransformUtil::computeWorldToViewTransform(worldTransform,scene,camera);
         Color& color=drawableFlag.value().color;
 
-        if (scene->getComponent<CircleRendererFlag>(entity).has_value()) {
-            auto circleRenderFlagComp=scene->getComponent<CircleRendererFlag>(entity);
+        if (ecs::getComponent<CircleRendererFlag>(scene, entity).has_value()) {
+            auto circleRenderFlagComp=ecs::getComponent<CircleRendererFlag>(scene, entity);
 
             // 使用多个线段近似圆形
             int segments = circleRenderFlagComp.value().segments;
-            float radius = circleRenderFlagComp.value().radius;
-            float x=worldTransform.position.x;
-            float y=worldTransform.position.y;
+            float radius = circleRenderFlagComp.value().radius*viewTransform.scale.x;
+            float x=viewTransform.position.x;
+            float y=viewTransform.position.y;
             RenderUtil::drawCircle(renderer, x, y, radius, color, segments);
-        }else if (scene->getComponent<RectRendererFlag>(entity).has_value()) {
-            auto rectRenderFlagComp = scene->getComponent<RectRendererFlag>(entity);
+        }else if (ecs::getComponent<RectRendererFlag>(scene, entity).has_value()) {
+            auto rectRenderFlagComp = ecs::getComponent<RectRendererFlag>(scene, entity);
             float width = rectRenderFlagComp.value().width;
             float height = rectRenderFlagComp.value().height;
-            SDL_FRect rect = {worldTransform.position.x, worldTransform.position.y, width * worldTransform.scale.x, height * worldTransform.scale.y};
+            SDL_FRect rect = {viewTransform.position.x, viewTransform.position.y, width * viewTransform.scale.x, height * viewTransform.scale.y};
             RenderUtil::drawRect(renderer, rect, color);
-        }else if (scene->getComponent<TextRendererFlag>(entity).has_value()) {
-            auto textRendererComp = scene->getComponent<TextRendererFlag>(entity);
+        }else if (ecs::getComponent<TextRendererFlag>(scene, entity).has_value()) {
+            auto textRendererComp = ecs::getComponent<TextRendererFlag>(scene, entity);
             auto cachedTexture = ResourceManager::getInstance().getTextureCache().get(textRendererComp.value().texResourceId);
 
             // 检查文本纹理是否已在缓存中
@@ -97,20 +98,20 @@ void RenderSystem::draw() {
 
             // 渲染文本纹理
             SDL_FRect dstRect = {
-                worldTransform.position.x,
-                worldTransform.position.y,
-                300 * worldTransform.scale.x,
-                100 * worldTransform.scale.y
+                viewTransform.position.x,
+                viewTransform.position.y,
+                300 * viewTransform.scale.x,
+                100 * viewTransform.scale.y
             };
 
-            RenderUtil::drawText(renderer, cachedTexture.get(), dstRect, color);
+            RenderUtil::drawText(renderer, cachedTexture.get(), dstRect);
 
-        }else if (scene->getComponent<ImageRendererFlag>(entity).has_value()) {
-            auto imageRendererComp = scene->getComponent<ImageRendererFlag>(entity);
-           auto texture = ResourceManager::getInstance().getTextureCache().get(imageRendererComp.value().resourceId);
+        }else if (ecs::getComponent<ImageRendererFlag>(scene, entity).has_value()) {
+            auto imageRendererComp = ecs::getComponent<ImageRendererFlag>(scene, entity);
+           auto texture = ResourceManager::getInstance().getTextureCache().get(imageRendererComp.value().textureId);
 
             if (!texture) {
-                SDL_Log("Warning: Texture resource '%s' not found in ResourceManager", imageRendererComp.value().resourceId.c_str());
+                SDL_Log("Warning:texture resource '%s' not found in ResourceManager", imageRendererComp.value().textureId.c_str());
                 return;
             }
 
@@ -119,12 +120,12 @@ void RenderSystem::draw() {
             float height = imageRendererComp.value().height;
 
             SDL_FRect dstRect = {
-                worldTransform.position.x,
-                worldTransform.position.y,
-                width * worldTransform.scale.x,
-                height * worldTransform.scale.y
+                viewTransform.position.x,
+                viewTransform.position.y,
+                width * viewTransform.scale.x,
+                height * viewTransform.scale.y
             };
-            RenderUtil::drawImage(renderer, texture.get(), dstRect, color, worldTransform.rotation.angle);
+            RenderUtil::drawImage(renderer, texture.get(), dstRect, color,viewTransform.rotation.angle);
 
         }
 
