@@ -35,12 +35,12 @@ Entity Prefabs::staticImage(const std::shared_ptr<Scene> &scene) {
     return img1_entity;
 }
 
-Entity Prefabs::anim1(const std::shared_ptr<Scene> &scene) {
+Entity Prefabs::anim1(const std::shared_ptr<Scene> &scene,std::optional<Entity> parent) {
     //anim
     Entity anim1_entity=ecs::createEntity(scene);
     ecs::setComponent<ecs::Name>(scene,anim1_entity, ecs::Name{"anim1"});
     ecs::setComponent<ecs::Enabled>(scene,anim1_entity, ecs::Enabled{true});
-    ecs::setComponent<Transform>(scene,anim1_entity, Transform{Position{500.0f, 400.0f}, Rotation{0}, Scale{}});
+    ecs::setComponent<Transform>(scene,anim1_entity, Transform{{500.0f, 200.0f}, {0}, {},parent});
     ecs::setComponent<DrawableFlag>(scene,anim1_entity,DrawableFlag{0,{255,255,255,255}});
     ecs::setComponent<ImageRendererFlag>(scene,anim1_entity,{ "anim1-tex",600,550});
     ecs::setComponent<FrameAnimatorFlag>(scene,anim1_entity,{"anim1","assets/1.gif",true});
@@ -50,7 +50,7 @@ Entity Prefabs::anim1(const std::shared_ptr<Scene> &scene) {
 Entity Prefabs::camera(const std::shared_ptr<Scene> &scene) {
     Entity camera_entity=ecs::createEntity(scene);
     ecs::setComponent<ecs::Enabled>(scene,camera_entity, ecs::Enabled{true});
-    ecs::setComponent<Transform>(scene,camera_entity,Transform{{0,0}});
+    ecs::setComponent<Transform>(scene,camera_entity,Transform{{0,0},{0}});
     ecs::setComponent<CameraComp>(scene,camera_entity,{800,600});
     return camera_entity;
 }

@@ -9,7 +9,7 @@
 #include "SDL3/SDL_render.h"
 
 
-class MyRenderer {
+class MyRenderer3D {
 private:
     SDL_Renderer *renderer;
     SDL_Texture *texture;
@@ -17,8 +17,8 @@ private:
     std::vector<double> depthBuffer;
     int width, height;
     public:
-    MyRenderer();
-    ~MyRenderer()=default;
+    MyRenderer3D();
+    ~MyRenderer3D()=default;
     void render(double verts[][3],int triangles[][3]);
 };
 

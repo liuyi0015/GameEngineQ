@@ -8,11 +8,15 @@
 #include "../2d/transform2d/Transform2dComponents.h"
 void CameraInputListenerSystem::onStart() {
     EventDispatcher::getInstance().subscribe("mouse wheeled",[this](std::any param) {
-        auto transformComp = ecs::getComponent<Transform>(scene,curEntity).value();
+        auto cameraComp = ecs::getComponent<CameraComp>(scene,curEntity).value();
         auto y=std::any_cast<float>(param);
-        transformComp.scale.x+=y;
-        transformComp.scale.y+=y;
+        cameraComp.viewportWidth+=y;
+        cameraComp.viewportHeight+=y;
+        auto transformComp = ecs::getComponent<Transform>(scene,curEntity).value();
+        transformComp.scale.x+=y/100;
+        transformComp.scale.y+=y/100;
         ecs::setComponent<Transform>(scene,curEntity, transformComp);
+        ecs::setComponent<CameraComp>(scene,curEntity, cameraComp);
     });
     EventDispatcher::getInstance().subscribe("key w",[this](std::any param) {
         auto transformComp = ecs::getComponent<Transform>(scene,curEntity).value();

@@ -17,6 +17,9 @@ struct MoveFlag {
 struct ScalerFlag {
     float speed;
 };
+struct RotationFlag {
+    float speed;
+};
 struct CameraInputListenerFlag {
 
 };

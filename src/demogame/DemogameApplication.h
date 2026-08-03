@@ -9,6 +9,7 @@
 #include "MoveSystem.h"
 #include "Prefabs.h"
 #include "PrintSystem.h"
+#include "RotationSystem.h"
 #include "ScalerSystem.h"
 #include "../EcsApplication.h"
 #include "../ResourceManager.hpp"
@@ -37,12 +38,14 @@ private:
         Prefabs::physicsCircle(scene);
         Entity camera1=Prefabs::camera(scene);
         ecs::setComponent<CameraInputListenerFlag>(scene, camera1, {});
-        // ecs::setComponent<ScalerFlag>(scene, camera1,{10});
-        // scene->systems.push_back(std::make_shared<MoveSystem>(scene));
-        auto scalerSystem=std::make_shared<ScalerSystem>(scene);
-        ecs::addSystem(scene,scalerSystem,{});
+        // auto scalerSystem=std::make_shared<ScalerSystem>(scene);
+        // ecs::addSystem(scene,scalerSystem,{});
+        auto cameraInputListenerSystem=std::make_shared<CameraInputListenerSystem>(scene);
+        ecs::addSystem(scene,cameraInputListenerSystem,{});
         auto physics2dSystem=std::make_shared<Physics2DSystem>(scene);
         ecs::addSystem(scene,physics2dSystem,{});
+        auto moveSystem=std::make_shared<MoveSystem>(scene);
+        ecs::addSystem(scene,moveSystem,{});
         auto* renderer=ApplicationContext::getInstance().get<SDL_Renderer*>("renderer");
         auto render2dSystem=std::make_shared<Render2dSystem>(scene, renderer,camera1);
         ecs::addSystem(scene,render2dSystem,{});
@@ -51,8 +54,10 @@ private:
     std::shared_ptr<Scene> loadScene2() {
         auto scene=std::make_shared<Scene>();
         Entity img1=Prefabs::staticImage(scene);
-        Prefabs::anim1(scene);
+        Entity anim1=Prefabs::anim1(scene,img1);
+        ecs::setComponent<RotationFlag>(scene, anim1, RotationFlag{100});
         Prefabs::button(scene,img1);
+        //摄像机的视口大小与transform(scale)无关，只看CameraComp
         Entity camera1=Prefabs::camera(scene);
         //systems
         auto* renderer=ApplicationContext::getInstance().get<SDL_Renderer*>("renderer");
@@ -60,9 +65,10 @@ private:
         ecs::addSystem(scene,render2dSystem,{});
         auto animationSystem=std::make_shared<AnimationSystem>(scene,renderer);
         ecs::addSystem(scene,animationSystem,{});
+        auto rotationSystem=std::make_shared<RotationSystem>(scene);
+        ecs::addSystem(scene,rotationSystem,{});
         auto print_system1 = std::make_shared<PrintSystem>(scene,1);
         ecs::addSystem(scene,print_system1,{10,0,0,0});
-
         auto print_system2 = std::make_shared<PrintSystem>(scene,2);
         ecs::addSystem(scene,print_system2,{});
 

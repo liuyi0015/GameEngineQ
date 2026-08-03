@@ -11,7 +11,7 @@ public:
     static Entity physicsCircle(const std::shared_ptr<Scene> &scene);
     static Entity staticImage( const std::shared_ptr<Scene> &scene);
     static Entity button(const std::shared_ptr<Scene> &scene,std::optional<Entity> parent);
-    static Entity anim1(const std::shared_ptr<Scene> &scene);
+    static Entity anim1(const std::shared_ptr<Scene> &scene, std::optional<Entity> parent);
     static Entity camera(const std::shared_ptr<Scene> &scene);
 };
 

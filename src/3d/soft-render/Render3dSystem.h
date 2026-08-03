@@ -6,15 +6,15 @@
 #define GAMEENGINE_RENDERSYSTEM_H
 #include <memory>
 
-#include "MyRenderer.h"
+#include "MyRenderer3D.h"
 #include "../../ecs/Scene.h"
 
 class Render3dSystem: public ecs::System {
 private:
-    std::shared_ptr<MyRenderer> renderer;
+    std::shared_ptr<MyRenderer3D> renderer;
     Entity camera;
 public:
-    explicit Render3dSystem(const std::shared_ptr<Scene> &scene, const std::shared_ptr<MyRenderer> &renderer, const Entity camera)
+    explicit Render3dSystem(const std::shared_ptr<Scene> &scene, const std::shared_ptr<MyRenderer3D> &renderer, const Entity camera)
         : System(scene),renderer(renderer),camera(camera){
     }
     void start() override{};

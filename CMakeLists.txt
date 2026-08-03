@@ -12,6 +12,8 @@ list(SORT GAMEENGINE_SOURCES)
 
 add_executable(${projectname}
         ${GAMEENGINE_SOURCES}
+        src/demogame/RotationSystem.cpp
+        src/demogame/RotationSystem.h
 )
 
 #add_subdirectory(mineSweeper)
@@ -24,6 +26,7 @@ add_subdirectory(third-party/SDL3_ttf-3.2.2 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/SDL3_image-3.2.6 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/SDL3_mixer-3.2.4 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/box2d-3.1.1 EXCLUDE_FROM_ALL)
+add_subdirectory(third-party/glm EXCLUDE_FROM_ALL)
 # 第四步：链接所有依赖
 target_link_libraries(${projectname} PUBLIC
         SDL3::SDL3
@@ -31,6 +34,7 @@ target_link_libraries(${projectname} PUBLIC
         SDL3_image::SDL3_image
         SDL3_mixer::SDL3_mixer
         box2d::box2d
+        glm::glm
 )
 
 # 添加 sol 头文件

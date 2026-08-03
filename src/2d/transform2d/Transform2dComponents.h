@@ -39,7 +39,7 @@ struct Transform {
 };
 
 struct CameraComp {
-    float w;
-    float h;
+    float viewportWidth;
+    float viewportHeight;
 };
 #endif //GAMEENGINE_TRANSFORM2DCOMPONENTS_H

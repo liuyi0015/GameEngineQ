@@ -8,7 +8,6 @@
 #include <cassert>
 
 #include "RenderComponents.h"
-#include "RenderUtil.h"
 #include "SDL3/SDL_log.h"
 #include "SDL3_image/SDL_image.h"
 #include "SDL3_ttf/SDL_ttf.h"
@@ -16,8 +15,11 @@
 #include "../transform2d/Transform2dComponents.h"
 #include "../transform2d/TransformUtil.h"
 #include "../../ecs/Util.h"
+#include "cmath"
 
 void Render2dSystem::start() {
+
+    //加载资源
     std::vector<std::pair<int,Entity>> drawableEntities;
     for (const auto entity:ecs::getEntities<DrawableFlag>(scene)) {
         if (ecs::getComponent<DrawableFlag>(scene, entity).has_value()) {
@@ -51,6 +53,36 @@ void Render2dSystem::start() {
         }
     }
 }
+
+static void drawCircle(SDL_Renderer *renderer, float x, float y, float radius, const Color &color, int segments) {
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+
+    // 使用多个线段近似圆形
+
+    for (int i = 0; i < segments; ++i) {
+        float angle1 = 2.0f * M_PI * i / segments;
+        float angle2 = 2.0f * M_PI * (i + 1) / segments;
+        float x1 = x + std::cos(angle1) * radius;
+        float y1 = y + std::sin(angle1) * radius;
+        float x2 = x + std::cos(angle2) * radius;
+        float y2 = y + std::sin(angle2) * radius;
+
+        SDL_RenderLine(renderer, x1, y1, x2, y2);
+    }
+}
+
+static void drawImage(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_FRect dstRect, const Color color,float angle) {
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+    SDL_FPoint center = { 0,0 };
+    SDL_RenderTextureRotated(renderer, texture, nullptr, &dstRect, angle, &center, SDL_FLIP_NONE);
+}
+static void drawRect(SDL_Renderer *renderer, const SDL_FRect rect, const Color &color) {
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+    SDL_RenderFillRect(renderer,&rect);
+}
+static void drawText(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_FRect dstRect) {
+    SDL_RenderTexture(renderer, texture, nullptr, &dstRect);
+}
 void Render2dSystem::draw() {
     std::vector<std::pair<int,Entity>> drawableEntities;
     for (const auto entity:ecs::getEntities<DrawableFlag>(scene)) {
@@ -79,13 +111,13 @@ void Render2dSystem::draw() {
             float radius = circleRenderFlagComp.value().radius*viewTransform.scale.x;
             float x=viewTransform.position.x;
             float y=viewTransform.position.y;
-            RenderUtil::drawCircle(renderer, x, y, radius, color, segments);
+            drawCircle(renderer, x, y, radius, color, segments);
         }else if (ecs::getComponent<RectRendererFlag>(scene, entity).has_value()) {
             auto rectRenderFlagComp = ecs::getComponent<RectRendererFlag>(scene, entity);
             float width = rectRenderFlagComp.value().width;
             float height = rectRenderFlagComp.value().height;
             SDL_FRect rect = {viewTransform.position.x, viewTransform.position.y, width * viewTransform.scale.x, height * viewTransform.scale.y};
-            RenderUtil::drawRect(renderer, rect, color);
+            drawRect(renderer, rect, color);
         }else if (ecs::getComponent<TextRendererFlag>(scene, entity).has_value()) {
             auto textRendererComp = ecs::getComponent<TextRendererFlag>(scene, entity);
             auto cachedTexture = ResourceManager::getInstance().getTextureCache().get(textRendererComp.value().texResourceId);
@@ -104,7 +136,7 @@ void Render2dSystem::draw() {
                 100 * viewTransform.scale.y
             };
 
-            RenderUtil::drawText(renderer, cachedTexture.get(), dstRect);
+            drawText(renderer, cachedTexture.get(), dstRect);
 
         }else if (ecs::getComponent<ImageRendererFlag>(scene, entity).has_value()) {
             auto imageRendererComp = ecs::getComponent<ImageRendererFlag>(scene, entity);
@@ -125,7 +157,7 @@ void Render2dSystem::draw() {
                 width * viewTransform.scale.x,
                 height * viewTransform.scale.y
             };
-            RenderUtil::drawImage(renderer, texture.get(), dstRect, color,viewTransform.rotation.angle);
+            drawImage(renderer, texture.get(), dstRect, color,viewTransform.rotation.angle);
 
         }
 

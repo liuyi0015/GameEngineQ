@@ -9,7 +9,7 @@
 #include "Context.hpp"
 #include "EventDispatcher.h"
 #include "ResourceManager.hpp"
-#include "3d/soft-render/MyRenderer.h"
+#include "3d/soft-render/MyRenderer3D.h"
 #include "demogame/DemogameApplication.h"
 #include "SDL3_image/SDL_image.h"
 
@@ -43,7 +43,7 @@ void init() {
 	ApplicationContext::getInstance().set("window", window);
 	ApplicationContext::getInstance().set("renderer", renderer);
 	//创建自定义渲染器
-	auto render3d_soft=std::make_shared<MyRenderer>();
+	auto render3d_soft=std::make_shared<MyRenderer3D>();
 	ApplicationContext::getInstance().set("render3d_soft", render3d_soft);
 	std::cout<<"init success"<<std::endl;
 	auto app=std::make_shared<DemogameApplication>();//可替换
@@ -77,6 +77,7 @@ int main_loop() {
 	bool isRunning = true;
 	EventDispatcher::getInstance().subscribe("quit",
 		[&isRunning](std::any param){isRunning=false;});
+	std::cout<<"Main loop started after"<<SDL_GetTicks()<<std::endl;
     while (isRunning) {
     	// 计算帧间隔
     	Uint64 currentCounter = SDL_GetPerformanceCounter();
@@ -161,7 +162,7 @@ int main_loop() {
 		    			EventDispatcher::getInstance().publish("key a",{});
 		    			break;
 		    		case SDLK_D:
-		    			EventDispatcher::getInstance().publish("key a",{});
+		    			EventDispatcher::getInstance().publish("key d",{});
 		    			break;
 		    		default:
 		    			break;
