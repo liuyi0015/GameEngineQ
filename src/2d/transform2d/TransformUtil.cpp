@@ -31,74 +31,106 @@ glm::mat3 TransformUtil::transformToMatrix(const Transform &transform) {
         );
     return matTranslate*matRotate*matScale;
 }
-Transform TransformUtil::getReverseTransform(const Transform &transform) {
+glm::mat3 TransformUtil::getReverseTransformToMatrix(const Transform &transform) {
     Transform reverseTransform;
     reverseTransform.scale.x=1.0f/transform.scale.x;
     reverseTransform.scale.y=1.0f/transform.scale.y;
     reverseTransform.rotation.angle=-transform.rotation.angle;
     reverseTransform.position.x=-transform.position.x;
     reverseTransform.position.y=-transform.position.y;
-    return reverseTransform;
+    float sx=reverseTransform.scale.x;
+    float sy=reverseTransform.scale.y;
+    glm::mat3 matScale=glm::mat3(
+        sx,0,0,
+        0,sy,0,
+        0,0,1
+    );
+    float c=glm::cos(glm::radians(reverseTransform.rotation.angle));
+    float s=glm::sin(glm::radians(reverseTransform.rotation.angle));
+    glm::mat3 matRotate=glm::mat3(
+        c, s, 0,
+        -s, c, 0,
+        0, 0, 1
+    );
+    float px=reverseTransform.position.x;
+    float py=reverseTransform.position.y;
+    glm::mat3 matTranslate=glm::mat3(
+        1,0,0,
+        0,1,0,
+        px,py,1
+    );
+    return matScale*matRotate*matTranslate;//反过来乘
 }
-
-Transform  TransformUtil::computeWorldToLocalTransform(const Transform &worldTransform,const Transform &parentWorldTransform,const std::shared_ptr<Scene>& scene) {
+Transform TransformUtil::matrixToTransform(const glm::mat3 &matrix) {
+    Transform transform;
+    transform.position.x=matrix[2][0];
+    transform.position.y=matrix[2][1];
+    float sx=glm::length(glm::vec2(matrix[0][0],matrix[1][0]));
+    float sy=glm::length(glm::vec2(matrix[0][1],matrix[1][1]));
+    float cos=(sx>0.0f)?matrix[0][0]/sx:1.0f;
+    float sin=(sy>0.0f)?matrix[0][1]/sy:0.0f;
+    transform.rotation.angle=glm::degrees(glm::atan(sin,cos));
+    transform.scale.x=sx;
+    transform.scale.y=sy;
+    return transform;
+}
+Transform  TransformUtil::computeWorldToLocalTransform(const Transform &worldTransform,const Transform &parentWorldTransform) {
     // 递归计算世界坐标
-    glm::mat3 parentWorldMatrix=transformToMatrix(parentWorldTransform);
+    glm::mat3 parentWorldMatrix=getReverseTransformToMatrix(parentWorldTransform);
     glm::mat3 worldMatrix=transformToMatrix(worldTransform);
     glm::mat3 localMatrix=parentWorldMatrix*worldMatrix;
-    Transform localTransform;
-    localTransform.position.x=localMatrix[2][0];
-    localTransform.position.y=localMatrix[2][1];
-    localTransform.rotation.angle=glm::degrees(glm::atan(localMatrix[0][1],localMatrix[0][0]));
-    localTransform.scale.x=glm::length(glm::vec2(localMatrix[0][0],localMatrix[1][0]));
-    localTransform.scale.y=glm::length(glm::vec2(localMatrix[0][1],localMatrix[1][1]));
-    return localTransform;
+    return matrixToTransform(localMatrix);
 }
-Transform TransformUtil::computeLocalToWorldTransform(const Transform &localTransform,const std::shared_ptr<Scene>& scene) {
-    Transform worldTransform;
+
+Transform TransformUtil::computeLocalToWorldTransform(const TransformComp &localTransform,const std::shared_ptr<Scene> &scene) {
     if (!localTransform.parent.has_value()) {
-        return localTransform;
+        return localTransform.transform;
     }
 
     auto parentEntity = localTransform.parent.value();
-    auto parentTransformOpt = ecs::getComponent<Transform>(scene, parentEntity);
+    auto parentTransformOpt = ecs::getComponent<TransformComp>(scene, parentEntity);
     if (!parentTransformOpt.has_value()) {
-        return localTransform;
+        return localTransform.transform;
     }
+    Transform worldTransform;
     // 递归计算世界坐标
     Transform parentWorldTransform = computeLocalToWorldTransform(parentTransformOpt.value(),scene);
-    glm::mat3 localMatrix=transformToMatrix(localTransform);
+    glm::mat3 localMatrix=transformToMatrix(localTransform.transform);
     glm::mat3 parentWorldMatrix=transformToMatrix(parentWorldTransform);
     glm::mat3 worldMatrix=parentWorldMatrix*localMatrix;
-    //提取矩阵数据
-    worldTransform.position.x=worldMatrix[2][0];
-    worldTransform.position.y=worldMatrix[2][1];
-    worldTransform.rotation.angle=glm::degrees(glm::atan(worldMatrix[0][1],worldMatrix[0][0]));
-    worldTransform.scale.x=glm::length(glm::vec2(worldMatrix[0][0],worldMatrix[1][0]));
-    worldTransform.scale.y=glm::length(glm::vec2(worldMatrix[0][1],worldMatrix[1][1]));
-    return worldTransform;
+    return matrixToTransform(worldMatrix);
 }
 
-Transform TransformUtil::computeWorldToViewTransform(const Transform &worldTransform,const std::shared_ptr<Scene> &scene,const Entity camera) {
-    Transform cameraTransform=ecs::getComponent<Transform>(scene, camera).value();
-    Transform cameraWorldTransform=computeLocalToWorldTransform(cameraTransform,scene);
-    Transform viewTransform = computeRelativeTransform(cameraWorldTransform, worldTransform, scene);
-    return viewTransform;
-}
 
-Transform TransformUtil::computeRelativeTransform(const Transform &from, const Transform &to,
+Transform TransformUtil::computeRelativeTransform(const TransformComp &from, const TransformComp &to,
     const std::shared_ptr<Scene> &scene) {
 
     Transform worldTransformOA=computeLocalToWorldTransform(from,scene);
     Transform worldTransform1=computeLocalToWorldTransform(to,scene);
-    return computeWorldToLocalTransform(worldTransform1,worldTransformOA,scene);
+    return computeWorldToLocalTransform(worldTransform1,worldTransformOA);
+}
+
+TransformComp TransformUtil::rotate(const TransformComp &transform, float angle,Position pivot) {
+    float rad = glm::radians(angle);
+    //正反平移矩阵
+    glm::mat3 Tneg = glm::mat3(1,0,0, 0,1,0, -pivot.x,-pivot.y,1);
+    glm::mat3 Tpos = glm::mat3(1,0,0, 0,1,0, pivot.x,pivot.y,1);
+    float c=glm::cos(rad), s=glm::sin(rad);
+    glm::mat3 R = glm::mat3(c, s, 0, -s, c, 0, 0, 0, 1);
+    glm::mat3 m = Tpos * R * Tneg * transformToMatrix(transform.transform);
+    // 抽取回 Transform（与 computeLocalToWorldTransform 一致）
+    Transform out_transform=matrixToTransform(m);
+    TransformComp out;
+    out.transform = out_transform;
+    out.parent = transform.parent;
+    return out;
 }
 
 std::vector<Entity> TransformUtil::getChildEntities(const Entity e1,
                                                     const std::shared_ptr<Scene> &scene) {
     std::vector<Entity> children;
-    for (auto entity : ecs::getEntities<Transform>(scene)) {
-        if (ecs::getComponent<Transform>(scene, entity).value().parent==e1) {
+    for (auto entity : ecs::getEntities<TransformComp>(scene)) {
+        if (ecs::getComponent<TransformComp>(scene, entity).value().parent==e1) {
             children.push_back(entity);
         }
     }

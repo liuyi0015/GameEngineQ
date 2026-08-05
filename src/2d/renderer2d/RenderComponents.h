@@ -6,19 +6,16 @@
 #define GAMEENGINE_RENDERCOMPONENTS_H
 #include <string>
 
+#include "../transform2d/Transform2dComponents.h"
+#include "SDL3/SDL_render.h"
 #include "SDL3/SDL_stdinc.h"
 
-struct Color {
-    Uint8 r = 255;
-    Uint8 g = 255;
-    Uint8 b = 255;
-    Uint8 a = 255;
-};
 
-//标记组件
 struct DrawableFlag {
     int z_order = 0;
-    Color color;
+    SDL_Color color;
+    std::vector<SDL_Vertex>vertices;
+    Position pivot{0,0};
 };
 struct CircleRendererFlag {
     float radius;

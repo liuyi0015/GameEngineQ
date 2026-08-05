@@ -30,7 +30,7 @@ private:
             Entity move_entity=ecs::createEntity(scene);
             ecs::setComponent<ecs::Enabled>(scene, move_entity, ecs::Enabled{true});
             ecs::setComponent<ecs::Name>(scene, move_entity, ecs::Name{"entity0"});
-            ecs::setComponent<Transform>(scene, move_entity, Transform{Position{50.0f+i*10, 50.0f}, Rotation{}, Scale{}});
+            ecs::setComponent<TransformComp>(scene, move_entity, TransformComp{Position{50.0f+i*10, 50.0f}, Rotation{}, Scale{}});
             ecs::setComponent<DrawableFlag>(scene, move_entity, DrawableFlag{1,{255,255,255,255}});
             ecs::setComponent<RectRendererFlag>(scene, move_entity,{100,100});
             ecs::setComponent<MoveFlag>(scene, move_entity,{400.0f, 400.0f,50,50, 200.0f});
@@ -38,12 +38,12 @@ private:
         Prefabs::physicsCircle(scene);
         Entity camera1=Prefabs::camera(scene);
         ecs::setComponent<CameraInputListenerFlag>(scene, camera1, {});
-        // auto scalerSystem=std::make_shared<ScalerSystem>(scene);
-        // ecs::addSystem(scene,scalerSystem,{});
         auto cameraInputListenerSystem=std::make_shared<CameraInputListenerSystem>(scene);
         ecs::addSystem(scene,cameraInputListenerSystem,{});
         auto physics2dSystem=std::make_shared<Physics2DSystem>(scene);
         ecs::addSystem(scene,physics2dSystem,{});
+        // auto scalerSystem=std::make_shared<ScalerSystem>(scene);
+        // ecs::addSystem(scene,scalerSystem,{});
         auto moveSystem=std::make_shared<MoveSystem>(scene);
         ecs::addSystem(scene,moveSystem,{});
         auto* renderer=ApplicationContext::getInstance().get<SDL_Renderer*>("renderer");
@@ -59,6 +59,9 @@ private:
         Prefabs::button(scene,img1);
         //摄像机的视口大小与transform(scale)无关，只看CameraComp
         Entity camera1=Prefabs::camera(scene);
+        ecs::setComponent<CameraInputListenerFlag>(scene, camera1, {});
+        auto cameraInputListenerSystem=std::make_shared<CameraInputListenerSystem>(scene);
+        ecs::addSystem(scene,cameraInputListenerSystem,{});
         //systems
         auto* renderer=ApplicationContext::getInstance().get<SDL_Renderer*>("renderer");
         auto render2dSystem=std::make_shared<Render2dSystem>(scene, renderer,camera1);
@@ -81,7 +84,6 @@ public:
         scenes["scene1"]=loadScene1();
         scenes["scene2"]=loadScene2();
         scene=scenes["scene2"];
-
         global_systems.push_back({std::make_shared<MouseColliderSystem>(scene),1});
         EcsApplication::init();
     }

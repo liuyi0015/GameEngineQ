@@ -12,8 +12,15 @@ list(SORT GAMEENGINE_SOURCES)
 
 add_executable(${projectname}
         ${GAMEENGINE_SOURCES}
-        src/demogame/RotationSystem.cpp
-        src/demogame/RotationSystem.h
+        src/demogame2d/RotationSystem.cpp
+        src/demogame2d/RotationSystem.h
+        src/DemoGame3d/DemoGameApplication.cpp
+        src/DemoGame3d/DemoGameApplication.h
+        src/DemoGame3d/Prefabs.cpp
+        src/DemoGame3d/Prefabs.h
+        src/DemoGame3d/HelloWorldSystem.cpp
+        src/DemoGame3d/HelloWorldSystem.h
+        src/3d/soft-render/RenderComponents.h
 )
 
 #add_subdirectory(mineSweeper)

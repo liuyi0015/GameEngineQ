@@ -11,9 +11,9 @@
 void MoveSystem::onFixedUpdate(double deltaTime) {
 
     auto moveFlagComp=ecs::getComponent<MoveFlag>(scene, curEntity);
-    auto transformComp = ecs::getComponent<Transform>(scene, curEntity);
+    auto transformComp = ecs::getComponent<TransformComp>(scene, curEntity);
     assert(moveFlagComp.has_value() && transformComp.has_value());
-    Position& pos = transformComp.value().position;
+    Position& pos = transformComp.value().transform.position;
 
     switch (moveFlagComp.value().currentEdge) {
         case 0:
@@ -46,6 +46,6 @@ void MoveSystem::onFixedUpdate(double deltaTime) {
             break;
         default: ;
     }
-    ecs::setComponent<Transform>(scene, curEntity, transformComp.value());
+    ecs::setComponent<TransformComp>(scene, curEntity, transformComp.value());
     ecs::setComponent<MoveFlag>(scene, curEntity, moveFlagComp.value());
 }

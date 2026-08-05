@@ -10,9 +10,11 @@
 #include "EventDispatcher.h"
 #include "ResourceManager.hpp"
 #include "3d/soft-render/MyRenderer3D.h"
-#include "demogame/DemogameApplication.h"
 #include "SDL3_image/SDL_image.h"
+#include "ui/UIComponents.h"
 
+// #include "DemoGame3d/DemoGameApplication.h"
+#include "demogame2d/DemogameApplication.h"
 
 #if _WIN32
 	#include <windows.h>
@@ -98,17 +100,19 @@ int main_loop() {
     	SDL_SetRenderDrawColor(renderer, 0, 100, 100, 255);//test
     	SDL_RenderClear(renderer);
     	draw();
-    	//提交渲染
-    	SDL_RenderPresent(renderer);
-
         // 每渲染一帧计数
         frameCount++;
+    	//每秒打印
         Uint32 now = SDL_GetTicks();
         if (now - fpsLastTick >= 1000) {
             std::cout<<"FPS: "<<frameCount<<std::endl;
             frameCount = 0;
             fpsLastTick = now;
         }
+    	SDL_RenderDebugTextFormat(renderer, 10, 10, "FPS: %d", frameCount);
+    	//提交渲染
+    	SDL_RenderPresent(renderer);
+
 
     	SDL_Event event;
     	// 事件循环
@@ -163,6 +167,12 @@ int main_loop() {
 		    			break;
 		    		case SDLK_D:
 		    			EventDispatcher::getInstance().publish("key d",{});
+		    			break;
+		    		case SDLK_Q:
+		    			EventDispatcher::getInstance().publish("key q",{});
+		    			break;
+		    		case SDLK_E:
+		    			EventDispatcher::getInstance().publish("key e",{});
 		    			break;
 		    		default:
 		    			break;

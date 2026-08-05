@@ -25,12 +25,12 @@ void Physics2DSystem::start() {
         if (!enabledComp.has_value()||!enabledComp.value().value || !rigidBodyComp.has_value()) {
             continue;
         }
-        auto transformComp = ecs::getComponent<Transform>(scene,entity);
+        auto transformComp = ecs::getComponent<TransformComp>(scene,entity);
         assert(transformComp.has_value());
         b2BodyDef bodyDef=b2DefaultBodyDef();
         bodyDef.type=rigidBodyComp.value().type;
         //屏幕坐标的y轴相反
-        bodyDef.position=(b2Vec2){transformComp.value().position.x,-transformComp.value().position.y};
+        bodyDef.position=(b2Vec2){transformComp.value().transform.position.x,-transformComp.value().transform.position.y};
         //形状
         b2ShapeDef shapeDef=b2DefaultShapeDef();
         shapeDef.density=1.0f;
@@ -56,12 +56,12 @@ void Physics2DSystem::fixed_update(double deltaTime) {
         b2Vec2 position = b2Body_GetPosition(bodyId);
         // std::cout<<"物理坐标"<<position.x<<" "<<position.y<<std::endl;
         b2Rot rotation = b2Body_GetRotation(bodyId);
-        auto transformComp = ecs::getComponent<Transform>(scene,entity);
+        auto transformComp = ecs::getComponent<TransformComp>(scene,entity);
         assert(transformComp.has_value()) ;
         //屏幕坐标的y轴相反
-        transformComp.value().position = {position.x, -position.y};
-        transformComp.value().rotation.angle = atan2f(rotation.s, rotation.c);
-        ecs::setComponent<Transform>(scene,entity, transformComp.value());
+        transformComp.value().transform.position = {position.x, -position.y};
+        transformComp.value().transform.rotation.angle = atan2f(rotation.s, rotation.c);
+        ecs::setComponent<TransformComp>(scene,entity, transformComp.value());
     }
 }
 
