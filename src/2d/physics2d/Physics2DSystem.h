@@ -18,13 +18,15 @@ private:
     b2WorldId worldId{};
     std::unordered_map<Entity,b2BodyId> bodyIds;
 public:
-    explicit Physics2DSystem(const std::shared_ptr<Scene> &scene)
+    explicit Physics2DSystem(Scene* scene)
         : System(scene){
     }
     void start() override;
     void update(double deltaTime) override{};
     void fixed_update(double deltaTime) override;
     void draw() override{};
+    b2BodyId getBodyIdsByEntity(Entity entity);
+    void setVelocity(Entity entity,b2Vec2 vel);
 };
 
 

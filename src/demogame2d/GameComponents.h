@@ -21,6 +21,8 @@ struct RotationFlag {
     float speed;
 };
 struct CameraInputListenerFlag {
-
+};
+struct JumpFlag {
+    float speedY=1000;
 };
 #endif //GAMEENGINE_GAMECOMPONENTS_H

@@ -4,7 +4,9 @@
 
 #include "TransformUtil.h"
 #include "Transform2dComponents.h"
+#include "../../Context.hpp"
 #include "../../ecs/Util.h"
+#include "../../Config.h"
 #include "glm/glm.hpp"
 
 glm::mat3 TransformUtil::transformToMatrix(const Transform &transform) {
@@ -82,7 +84,7 @@ Transform  TransformUtil::computeWorldToLocalTransform(const Transform &worldTra
     return matrixToTransform(localMatrix);
 }
 
-Transform TransformUtil::computeLocalToWorldTransform(const TransformComp &localTransform,const std::shared_ptr<Scene> &scene) {
+Transform TransformUtil::computeLocalToWorldTransform(const TransformComp &localTransform,Scene* scene) {
     if (!localTransform.parent.has_value()) {
         return localTransform.transform;
     }
@@ -103,7 +105,7 @@ Transform TransformUtil::computeLocalToWorldTransform(const TransformComp &local
 
 
 Transform TransformUtil::computeRelativeTransform(const TransformComp &from, const TransformComp &to,
-    const std::shared_ptr<Scene> &scene) {
+    Scene* scene) {
 
     Transform worldTransformOA=computeLocalToWorldTransform(from,scene);
     Transform worldTransform1=computeLocalToWorldTransform(to,scene);
@@ -126,8 +128,17 @@ TransformComp TransformUtil::rotate(const TransformComp &transform, float angle,
     return out;
 }
 
-std::vector<Entity> TransformUtil::getChildEntities(const Entity e1,
-                                                    const std::shared_ptr<Scene> &scene) {
+Position TransformUtil::screenToWorldPosition(Position screenPos, TransformComp cameraTransformComp, CameraComp camera_comp) {
+    auto config=ApplicationContext::getInstance().get<Config>("config");
+    auto x=(screenPos.x/config.LOGIC_WIDTH-0.5f)*2*camera_comp.viewportWidth;
+    auto y=(screenPos.y/config.LOGIC_HEIGHT-0.5f)*2*camera_comp.viewportHeight;
+    auto viewTransform=Transform{{x,y},{0},{1,1}};
+    auto viewToWorldMatrix = getReverseTransformToMatrix(cameraTransformComp.transform);
+    auto worldMatrix=viewToWorldMatrix*transformToMatrix(viewTransform);
+    return matrixToTransform(worldMatrix).position;
+}
+
+std::vector<Entity> TransformUtil::getChildEntities(const Entity e1,Scene* scene) {
     std::vector<Entity> children;
     for (auto entity : ecs::getEntities<TransformComp>(scene)) {
         if (ecs::getComponent<TransformComp>(scene, entity).value().parent==e1) {

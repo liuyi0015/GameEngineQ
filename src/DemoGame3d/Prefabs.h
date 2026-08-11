@@ -4,9 +4,11 @@
 
 #ifndef GAMEENGINE_PREFABS_H
 #define GAMEENGINE_PREFABS_H
-
+#include "../ecs/Scene.h"
 
 class Prefabs {
+    static Entity cube(Scene* scene);
+
 };
 
 

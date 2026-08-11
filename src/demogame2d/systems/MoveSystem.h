@@ -6,14 +6,14 @@
 #define GAMEENGINE_MOVESYSTEM_H
 #include <memory>
 
-#include "GameComponents.h"
-#include "../ecs/MonoBehaviourSystem.h"
-#include "../ecs/Scene.h"
+#include "../GameComponents.h"
+#include "../../ecs/MonoBehaviourSystem.h"
+#include "../../ecs/Scene.h"
 
 
 class MoveSystem : public ecs::MonoBehaviourSystem<MoveFlag> {
 public:
-    explicit MoveSystem(const std::shared_ptr<Scene>& scene)
+    explicit MoveSystem(Scene* scene)
         : ecs::MonoBehaviourSystem<MoveFlag>(scene) {
         
     }

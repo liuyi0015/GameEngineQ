@@ -8,6 +8,5 @@
 
 struct RigidBodyComp {
     b2BodyType type;
-
 };
 #endif //GAMEENGINE_PHYSICSCOMPONENTS_H

@@ -8,6 +8,8 @@
 
 class DemoGameApplication:public EcsApplication{
 public:
+    Scene* loadScene(std::string sceneName) override;
+
     void init() override;
 };
 

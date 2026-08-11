@@ -11,10 +11,10 @@
 
 class Render3dSystem: public ecs::System {
 private:
-    std::shared_ptr<MyRenderer3D> renderer;
+    SDL_Renderer* renderer;
     Entity camera;
 public:
-    explicit Render3dSystem(const std::shared_ptr<Scene> &scene, const std::shared_ptr<MyRenderer3D> &renderer, const Entity camera)
+    explicit Render3dSystem(Scene* scene,SDL_Renderer* renderer, const Entity camera)
         : System(scene),renderer(renderer),camera(camera){
     }
     void start() override{};

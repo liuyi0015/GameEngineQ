@@ -9,7 +9,7 @@
 #include "Context.hpp"
 #include "EventDispatcher.h"
 #include "ResourceManager.hpp"
-#include "3d/soft-render/MyRenderer3D.h"
+#include "3d/render3d-soft/MyRenderer3D.h"
 #include "SDL3_image/SDL_image.h"
 #include "ui/UIComponents.h"
 
@@ -45,25 +45,25 @@ void init() {
 	ApplicationContext::getInstance().set("window", window);
 	ApplicationContext::getInstance().set("renderer", renderer);
 	//创建自定义渲染器
-	auto render3d_soft=std::make_shared<MyRenderer3D>();
-	ApplicationContext::getInstance().set("render3d_soft", render3d_soft);
+	auto* render3d=new MyRenderer3D();
+	ApplicationContext::getInstance().set("render3d", render3d);
 	std::cout<<"init success"<<std::endl;
-	auto app=std::make_shared<DemogameApplication>();//可替换
-	ApplicationContext::getInstance().set<std::shared_ptr< EcsApplication>>("app", app);
+	auto* app=new DemogameApplication();//可替换
+	ApplicationContext::getInstance().set<EcsApplication*>("app", app);
 	app->init();
 }
 void start() {
-	AudioPlayer::loadAndPlay("assets/2.mp3");
-	ApplicationContext::getInstance().get<std::shared_ptr<EcsApplication>>("app")->start();
+	// AudioPlayer::loadAndPlay("assets/2.mp3");
+	ApplicationContext::getInstance().get<EcsApplication*>("app")->start();
 }
 void update(double deltaTime) {
-	ApplicationContext::getInstance().get<std::shared_ptr<EcsApplication>>("app")->update(deltaTime);
+	ApplicationContext::getInstance().get<EcsApplication*>("app")->update(deltaTime);
 }
 void fixed_update(double deltaTime) {
-	ApplicationContext::getInstance().get<std::shared_ptr<EcsApplication>>("app")->fixed_update(deltaTime);
+	ApplicationContext::getInstance().get<EcsApplication*>("app")->fixed_update(deltaTime);
 }
 void draw() {
-	ApplicationContext::getInstance().get<std::shared_ptr<EcsApplication>>("app")->draw();
+	ApplicationContext::getInstance().get<EcsApplication*>("app")->draw();
 }
 int main_loop() {
 	start();
@@ -153,9 +153,15 @@ int main_loop() {
 			    MouseEventParam param={event.motion.x,event.motion.y};
 		    	EventDispatcher::getInstance().publish("mouse moved",param);
 		    }else if (event.type==SDL_EVENT_MOUSE_WHEEL){
-		    	EventDispatcher::getInstance().publish("mouse wheeled",event.wheel.y);
+		    	EventDispatcher::getInstance().publish("mouse wheeled",event.wheel);
 		    }else if (event.type==SDL_EVENT_KEY_DOWN) {
 		    	switch (event.key.key) {
+		    		case SDLK_SPACE:
+		    			EventDispatcher::getInstance().publish("key down space",{});
+		    			break;
+		    		case SDLK_ESCAPE:
+		    			EventDispatcher::getInstance().publish("switch_scene",std::string("scene2"));
+		    			break;
 		    		case SDLK_S:
 		    			EventDispatcher::getInstance().publish("key s",{});
 		    			break;
@@ -205,7 +211,7 @@ void testEvents() {
 	},true);
 	for (int i=0;i<2;i++) {
 		std::string param="param"+std::to_string(i);
-		// 可能为空时使用指针，最好是智能指针
+		// 可能为空时使用指针
 		std::string* paramPtr=nullptr;
 		EventDispatcher::getInstance().publish("testEventSystem", paramPtr);
 		//使用引用
@@ -214,12 +220,14 @@ void testEvents() {
 		std::cout<<"函数外str是："<<param<<std::endl;
 	}
 }
+#include "box3d/box3d.h"
 int main() {
 #if _WIN32
 	SetConsoleOutputCP(65001); // Set console to CP_UTF8
 #endif
 	init();
-	testEvents();
+	// testEvents();
+	b3BodyDef s=b3DefaultBodyDef();
 	main_loop();
 	return 0;
 }

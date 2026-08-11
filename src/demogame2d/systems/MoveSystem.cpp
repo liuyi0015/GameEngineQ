@@ -5,8 +5,8 @@
 #include "MoveSystem.h"
 
 #include <cassert>
-#include "../2d/transform2d/Transform2dComponents.h"
-#include "GameComponents.h"
+#include "../../2d/transform2d/Transform2dComponents.h"
+#include "../GameComponents.h"
 
 void MoveSystem::onFixedUpdate(double deltaTime) {
 

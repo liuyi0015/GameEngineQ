@@ -2,7 +2,7 @@
 // Created by XL0002 on 2026/7/21.
 //
 
-#include "MouseColliderSystem.h"
+#include "MouseUISystem.h"
 
 #include "../EventDispatcher.h"
 #include "../ecs/BaseComponents.h"
@@ -11,7 +11,7 @@
 #include "../ecs/Util.h"
 #include "SDL3/SDL_rect.h"
 
-void MouseColliderSystem::start() {
+void MouseUISystem::start() {
     EventDispatcher::getInstance().subscribe("left mouse pressed",[this](std::any param) {
         leftMousePressed(param);
     });
@@ -65,7 +65,7 @@ static bool pointInPolygon(const SDL_FPoint &pt, const std::vector<SDL_FPoint> &
     }
     return inside;
 }
-void MouseColliderSystem::leftMousePressed(const std::any&  param) {
+void MouseUISystem::leftMousePressed(const std::any&  param) {
     for (Entity entity:getSortedMouseColliders<LeftMouseColliderEvents>(scene)) {
         auto mouseColliderFlag=ecs::getComponent<MouseColliderFlag>(scene,entity).value();
         auto transformComp=ecs::getComponent<TransformComp>(scene,entity).value();
@@ -79,25 +79,25 @@ void MouseColliderSystem::leftMousePressed(const std::any&  param) {
     }
 }
 
-void MouseColliderSystem::leftMouseReleased(const std::any &param) {
+void MouseUISystem::leftMouseReleased(const std::any &param) {
 }
 
-void MouseColliderSystem::rightMousePressed(const std::any &param) {
+void MouseUISystem::rightMousePressed(const std::any &param) {
 }
 
-void MouseColliderSystem::rightMouseReleased(const std::any &param) {
+void MouseUISystem::rightMouseReleased(const std::any &param) {
 }
 
 
-void MouseColliderSystem::middleMousePressed(const std::any &param) {
+void MouseUISystem::middleMousePressed(const std::any &param) {
 }
 
-void MouseColliderSystem::middleMouseReleased(const std::any &param) {
+void MouseUISystem::middleMouseReleased(const std::any &param) {
 }
 
-void MouseColliderSystem::wheelMouse(const std::any &param) {
+void MouseUISystem::wheelMouse(const std::any &param) {
 }
-void MouseColliderSystem::mouseMoved(const std::any &param) {
+void MouseUISystem::mouseMoved(const std::any &param) {
     for (Entity entity:getSortedMouseColliders<MoveMouseColliderEvents>(scene)) {
         auto mouseColliderFlag=ecs::getComponent<MouseColliderFlag>(scene,entity).value();
         auto transformComp=ecs::getComponent<TransformComp>(scene,entity).value();

@@ -4,13 +4,13 @@
 
 #ifndef GAMEENGINE_SCALERSYSTEM_H
 #define GAMEENGINE_SCALERSYSTEM_H
-#include "GameComponents.h"
-#include "../ecs/MonoBehaviourSystem.h"
+#include "../GameComponents.h"
+#include "../../ecs/MonoBehaviourSystem.h"
 
 
 class ScalerSystem :public ecs::MonoBehaviourSystem<ScalerFlag>{
     public:
-    explicit ScalerSystem(const std::shared_ptr<Scene>& scene)
+    explicit ScalerSystem(Scene* scene)
         : ecs::MonoBehaviourSystem<ScalerFlag>(scene) {
 
     }

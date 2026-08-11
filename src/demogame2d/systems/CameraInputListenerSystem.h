@@ -4,13 +4,13 @@
 
 #ifndef GAMEENGINE_INPUTCAMERALISTENERSYSTEM_H
 #define GAMEENGINE_INPUTCAMERALISTENERSYSTEM_H
-#include "GameComponents.h"
-#include "../ecs/MonoBehaviourSystem.h"
+#include "../GameComponents.h"
+#include "../../ecs/MonoBehaviourSystem.h"
 
 
 class CameraInputListenerSystem:public ecs::MonoBehaviourSystem<CameraInputListenerFlag>{
     public:
-    explicit CameraInputListenerSystem(const std::shared_ptr<Scene>& scene)
+    explicit CameraInputListenerSystem(Scene* scene)
         : ecs::MonoBehaviourSystem<CameraInputListenerFlag>(scene) {
 
     }

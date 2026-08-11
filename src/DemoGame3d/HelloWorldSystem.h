@@ -10,7 +10,7 @@
 class HelloWorldSystem:public ecs::System{
 
 public:
-    HelloWorldSystem(const std::shared_ptr<Scene>& scene) :System(scene){
+    HelloWorldSystem(Scene* scene) :System(scene){
     }
     void start() override {
         std::cout<<"Hello, World!"<<std::endl;

@@ -20,13 +20,13 @@ class TransformUtil {
                                                   const Transform &parentWorldTransform);
 
     static Transform computeLocalToWorldTransform(const TransformComp &localTransform,
-                                                  const std::shared_ptr<Scene> &scene);
-    static Transform computeRelativeTransform(const TransformComp &from, const TransformComp &to, const std::shared_ptr<Scene> &scene);
+                                                  Scene* scene);
+    static Transform computeRelativeTransform(const TransformComp &from, const TransformComp &to, Scene* scene);
     //在局部坐标旋转，不涉及世界变换
     static TransformComp rotate(const TransformComp &transform, float angle, Position pivot);
-
+    static Position screenToWorldPosition(Position ,TransformComp,CameraComp);
     static std::vector<Entity> getChildEntities(
-        Entity e1, const std::shared_ptr<Scene> &scene);
+        Entity e1, Scene* scene);
 };
 
 

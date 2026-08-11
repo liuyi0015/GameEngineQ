@@ -12,37 +12,56 @@
 #include "EventDispatcher.h"
 #include "ecs/Scene.h"
 #include "ecs/System.h"
+#include "ecs/Util.h"
+#include "SDL3/SDL_log.h"
 
 
 struct SystemComparer{
-    bool operator()(const SystemPhaseOrder& a, const SystemPhaseOrder& b) const {
+    bool operator()(const SystemOrder& a, const SystemOrder& b) const {
         return a.second < b.second;
     }
 };
+//可以直接用在main里，相当于空应用
 class EcsApplication {
+private:
 protected:
-    std::shared_ptr<Scene > scene;
-    std::unordered_map<std::string, std::shared_ptr<Scene>> scenes;
-    std::vector<SystemPhaseOrder> global_systems;
+    Scene* scene;
+    std::vector<Scene*> global_scenes;
+    void switch_scene(const std::string& sceneName) {
+        auto* oldScene=scene;
+        scene=loadScene(sceneName);
+        //手动释放
+        delete oldScene;
+        if (scene!=nullptr) {
+            //修改全局参数
+            for (const auto& gScene:global_scenes) {
+                for (const auto& [systemId,system]:gScene->systemIds) {
+                    system->scene=scene;
+                }
+            }
+            //
+            std::sort(scene->system_start_orders.begin(), scene->system_start_orders.end(), SystemComparer());
+            std::sort(scene->system_update_orders.begin(), scene->system_update_orders.end(), SystemComparer());
+            std::sort(scene->system_fixed_update_orders.begin(), scene->system_fixed_update_orders.end(), SystemComparer());
+            std::sort(scene->system_draw_orders.begin(), scene->system_draw_orders.end(), SystemComparer());
+            start();
+        }else {
+            SDL_Log("场景%s不存在",sceneName.c_str());
+        }
+    }
 public:
     EcsApplication() {
-        scene=std::make_shared<Scene>();
+        //默认保留一个空场景，不然空指针会导致程序崩溃
+        scene=new Scene();
     }
     virtual ~EcsApplication() = default;
-
+    virtual Scene* loadScene(std::string sceneName) { return nullptr; };
     virtual void init() {
-        EventDispatcher::getInstance().subscribe("switch_scene",[this](std::any param){
-            auto newSceneName=std::any_cast<std::string>(param);
-            if (scenes.find(newSceneName) != scenes.end()) {
-                scene=scenes[newSceneName];
-                for (const auto& gSystem:global_systems) {
-                    gSystem.first->scene=scene;
-                }
-                start();
-            }
+        EventDispatcher::getInstance().subscribe("switch_scene",[this](std::any param) {
+            const auto sceneName=std::any_cast<std::string>(param);
+            switch_scene(sceneName);
         },false,false);
-        std::sort(global_systems.begin(), global_systems.end(), SystemComparer());
-        for (const auto& [a,scene]:scenes) {
+        for (const auto& scene : global_scenes) {
             std::sort(scene->system_start_orders.begin(), scene->system_start_orders.end(), SystemComparer());
             std::sort(scene->system_update_orders.begin(), scene->system_update_orders.end(), SystemComparer());
             std::sort(scene->system_fixed_update_orders.begin(), scene->system_fixed_update_orders.end(), SystemComparer());
@@ -50,36 +69,51 @@ public:
         }
     }
     void start() {
-        for (const auto& global_system:global_systems) {
-            global_system.first->start();
+        for (const auto& scene:global_scenes) {
+            for (const auto& systemOrder:scene->system_start_orders) {
+                auto system=ecs::getSystemById(scene,systemOrder.first);
+                system->start();
+            }
         }
         for (const auto& systemOrder:scene->system_start_orders) {
-            systemOrder.first->start();
+            auto system=ecs::getSystemById(scene,systemOrder.first);
+            system->start();
         }
     }
     void update(double deltaTime) {
-        for (const auto& global_system:global_systems) {
-            global_system.first->update(deltaTime);
+        for (const auto& scene:global_scenes) {
+            for (const auto& systemOrder:scene->system_update_orders) {
+                auto system=ecs::getSystemById(scene,systemOrder.first);
+                system->update(deltaTime);
+            }
         }
         for (const auto& systemOrder:scene->system_update_orders) {
-            systemOrder.first->update(deltaTime);
+            auto system=ecs::getSystemById(scene,systemOrder.first);
+            system->update(deltaTime);
         }
     }
     void fixed_update(double deltaTime) {
-        for (const auto& global_system:global_systems) {
-            global_system.first->fixed_update(deltaTime);
+        for (const auto& scene:global_scenes) {
+            for (const auto& systemOrder:scene->system_fixed_update_orders) {
+                auto system=ecs::getSystemById(scene,systemOrder.first);
+                system->fixed_update(deltaTime);
+            }
         }
         for (const auto& systemOrder:scene->system_fixed_update_orders) {
-            systemOrder.first->fixed_update(deltaTime);
+            auto system=ecs::getSystemById(scene,systemOrder.first);
+            system->fixed_update(deltaTime);
         }
     }
     void draw() {
-        for (const auto& global_system:global_systems) {
-            global_system.first->draw();
+        for (const auto& scene:global_scenes) {
+            for (const auto& systemOrder:scene->system_draw_orders) {
+                auto system=ecs::getSystemById(scene,systemOrder.first);
+                system->draw();
+            }
         }
         for (const auto& systemOrder:scene->system_draw_orders) {
-
-            systemOrder.first->draw();
+            auto system=ecs::getSystemById(scene,systemOrder.first);
+            system->draw();
         }
     }
 };

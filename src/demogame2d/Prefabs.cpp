@@ -5,7 +5,7 @@
 #include "Prefabs.h"
 #include "../ecs/BaseComponents.h"
 
-#include "../2d/renderer2d/RenderComponents.h"
+#include "../2d/renderer2d-soft/RenderComponents.h"
 #include "../2d/transform2d/Transform2dComponents.h"
 #include "../2d/physics2d/PhysicsComponents.h"
 #include "../ui/UIComponents.h"
@@ -13,7 +13,7 @@
 #include "../EventDispatcher.h"
 #include "../ecs/Util.h"
 
-Entity Prefabs::physicsCircle(const std::shared_ptr<Scene> &scene) {
+Entity Prefabs::physicsCircle(Scene* scene) {
 
     Entity circle_entity=ecs::createEntity(scene);
     ecs::setComponent<ecs::Enabled>(scene,circle_entity, ecs::Enabled{true});
@@ -24,7 +24,17 @@ Entity Prefabs::physicsCircle(const std::shared_ptr<Scene> &scene) {
     ecs::setComponent<RigidBodyComp>(scene,circle_entity,{b2_dynamicBody});
     return circle_entity;
 }
-Entity Prefabs::staticImage(const std::shared_ptr<Scene> &scene) {
+Entity Prefabs::staticGround(Scene* scene) {
+    Entity ground_entity=ecs::createEntity(scene);
+    ecs::setComponent<ecs::Enabled>(scene,ground_entity, ecs::Enabled{true});
+    ecs::setComponent<ecs::Name>(scene,ground_entity, ecs::Name{"ground"});
+    ecs::setComponent<TransformComp>(scene,ground_entity, TransformComp{Position{100.0f, 500.0f}});
+    ecs::setComponent<DrawableFlag>(scene,ground_entity,DrawableFlag{0,{255,0,0,255}});
+    ecs::setComponent<RectRendererFlag>(scene,ground_entity,{  500.0f,32});
+    ecs::setComponent<RigidBodyComp>(scene,ground_entity,{b2_staticBody});
+    return ground_entity;
+}
+Entity Prefabs::staticImage(Scene* scene) {
     //image
     Entity img1_entity=ecs::createEntity(scene);
     ecs::setComponent<ecs::Name>(scene,img1_entity, ecs::Name{"img1"});
@@ -35,7 +45,7 @@ Entity Prefabs::staticImage(const std::shared_ptr<Scene> &scene) {
     return img1_entity;
 }
 
-Entity Prefabs::anim1(const std::shared_ptr<Scene> &scene,std::optional<Entity> parent) {
+Entity Prefabs::anim1(Scene* scene,std::optional<Entity> parent) {
     //anim
     Entity anim1_entity=ecs::createEntity(scene);
     ecs::setComponent<ecs::Name>(scene,anim1_entity, ecs::Name{"anim1"});
@@ -47,7 +57,7 @@ Entity Prefabs::anim1(const std::shared_ptr<Scene> &scene,std::optional<Entity> 
     return anim1_entity;
 }
 
-Entity Prefabs::camera(const std::shared_ptr<Scene> &scene) {
+Entity Prefabs::camera(Scene* scene) {
     Entity camera_entity=ecs::createEntity(scene);
     ecs::setComponent<ecs::Enabled>(scene,camera_entity, ecs::Enabled{true});
     ecs::setComponent<TransformComp>(scene,camera_entity, TransformComp{{{0,0},{0},{1,1}},std::nullopt});
@@ -55,7 +65,7 @@ Entity Prefabs::camera(const std::shared_ptr<Scene> &scene) {
     return camera_entity;
 }
 
-Entity Prefabs::button(const std::shared_ptr<Scene> &scene, const std::optional<Entity> parent) {
+Entity Prefabs::button(Scene* scene, const std::optional<Entity> parent) {
     //textBtn{rect,text,collider}
     Entity textBtn1_entity=ecs::createEntity(scene);
     ecs::setComponent<ecs::Name>(scene,textBtn1_entity, ecs::Name{"textBtn1"});
@@ -78,7 +88,7 @@ Entity Prefabs::button(const std::shared_ptr<Scene> &scene, const std::optional<
         Position{0.0f, 0.0f}, Rotation{}, Scale{},textBtn1_entity
     });
     ecs::setComponent<DrawableFlag>(scene,textBtn1_text_subEntity,DrawableFlag{2,{255,255,255,255}});
-    ecs::setComponent<TextRendererFlag>(scene,textBtn1_text_subEntity,{ "我是按钮，点我",
+    ecs::setComponent<TextRendererFlag>(scene,textBtn1_text_subEntity,{ "我是按钮，点我退出",
         "font1","text1-surf","text1-tex"});
 
     Entity textBtn1_collider_subEntity=ecs::createEntity(scene);

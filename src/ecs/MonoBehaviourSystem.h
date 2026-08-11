@@ -6,7 +6,7 @@
 #include "Util.h"
 
 namespace ecs {
-
+//乱序处理组件，或者说，按放进场景的顺序
     template<typename TFlagComponent>
     class MonoBehaviourSystem : public System{
     private:
@@ -20,7 +20,7 @@ namespace ecs {
     protected:
         Entity curEntity;
     public:
-        explicit MonoBehaviourSystem(const std::shared_ptr<Scene>& scene)
+        explicit MonoBehaviourSystem(Scene* scene)
             : System(scene), curEntity(-1) {
         }
         void start() override {

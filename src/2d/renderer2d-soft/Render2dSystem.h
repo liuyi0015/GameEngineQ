@@ -14,7 +14,7 @@ private:
     SDL_Renderer* renderer;
     Entity camera;
 public:
-    explicit Render2dSystem(const std::shared_ptr<Scene> &scene,SDL_Renderer* renderer, const Entity camera)
+    explicit Render2dSystem(Scene* scene,SDL_Renderer* renderer, const Entity camera)
         : System(scene),renderer(renderer),camera(camera){
     }
     void start() override;

@@ -6,21 +6,12 @@ set(CMAKE_CXX_STANDARD 17)
 
 # 第1步：编译主程序源文件
 file(GLOB_RECURSE GAMEENGINE_SOURCES CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/**.cpp"
 )
 list(SORT GAMEENGINE_SOURCES)
 
 add_executable(${projectname}
         ${GAMEENGINE_SOURCES}
-        src/demogame2d/RotationSystem.cpp
-        src/demogame2d/RotationSystem.h
-        src/DemoGame3d/DemoGameApplication.cpp
-        src/DemoGame3d/DemoGameApplication.h
-        src/DemoGame3d/Prefabs.cpp
-        src/DemoGame3d/Prefabs.h
-        src/DemoGame3d/HelloWorldSystem.cpp
-        src/DemoGame3d/HelloWorldSystem.h
-        src/3d/soft-render/RenderComponents.h
 )
 
 #add_subdirectory(mineSweeper)
@@ -34,7 +25,7 @@ add_subdirectory(third-party/SDL3_image-3.2.6 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/SDL3_mixer-3.2.4 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/box2d-3.1.1 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/glm EXCLUDE_FROM_ALL)
-# 第四步：链接所有依赖
+# 第四步：链接所有依赖（静态）
 target_link_libraries(${projectname} PUBLIC
         SDL3::SDL3
         SDL3_ttf::SDL3_ttf
@@ -46,3 +37,11 @@ target_link_libraries(${projectname} PUBLIC
 
 # 添加 sol 头文件
 #target_include_directories(${projectname} PRIVATE ${PROJECT_SOURCE_DIR}/third-party/sol-3.3.0/include)
+
+include(FetchContent)
+FetchContent_Declare(box3d
+        GIT_REPOSITORY https://github.com/erincatto/box3d.git
+        GIT_TAG v0.1.0)
+FetchContent_MakeAvailable(box3d)
+
+target_link_libraries(${projectname} PRIVATE box3d::box3d)

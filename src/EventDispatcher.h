@@ -6,10 +6,8 @@
 #define GAMEENGINE_EVENTSYSTEM_H
 #include <any>
 #include <functional>
-#include <optional>
 #include <queue>
 #include <string>
-#include <variant>
 
 struct EventCallback{
     std::string name;

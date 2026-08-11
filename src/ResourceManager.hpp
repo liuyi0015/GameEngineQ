@@ -12,13 +12,14 @@
 template<typename T>
 class ResourceCache {
 private:
-    std::unordered_map<std::string, std::shared_ptr<T>> m_cache;
+    std::vector<T> _trashBox;
+    std::unordered_map<std::string,T> m_cache;
 public:
-    void set(const std::string& key, std::shared_ptr<T> resource) {
+    void set(const std::string& key,const T& resource) {
         m_cache[key] = resource;
     }
 
-    std::shared_ptr<T> get(const std::string& key) {
+    T get(const std::string& key) {
         auto it = m_cache.find(key);
         if (it != m_cache.end())  return it->second;
         return nullptr;
@@ -31,6 +32,12 @@ public:
     void remove(const std::string& key) {
         m_cache.erase(key);
     }
+    void trash(const std::string& key) {
+        _trashBox.push_back(m_cache[key]);
+    }
+    void clearTrashBox() {
+        _trashBox.clear();
+    }
 
     void clear() {
         m_cache.clear();
@@ -40,7 +47,7 @@ public:
         return m_cache.size();
     }
 
-    std::unordered_map<std::string, std::shared_ptr<T>> getAll() const {
+    std::unordered_map<std::string,const T&> getAll() const {
         return m_cache;
     };
     // 获取所有资源的ID列表
@@ -58,13 +65,11 @@ class ResourceManager {
 private:
     // 私有构造函数
     ResourceManager() = default;
-
-
     // 资源缓存成员变量
-    ResourceCache<SDL_Surface> m_surfaceCache;
-    ResourceCache<SDL_Texture> m_textureCache;
-    ResourceCache<TTF_Font> m_fontCache;
-    ResourceCache<IMG_Animation> m_animationCache;
+    ResourceCache<SDL_Surface*> m_surfaceCache;
+    ResourceCache<SDL_Texture*> m_textureCache;
+    ResourceCache<TTF_Font*> m_fontCache;
+    ResourceCache<IMG_Animation*> m_animationCache;
 
 public:
     // 禁止拷贝和赋值
@@ -76,11 +81,11 @@ public:
         return instance;
     }
 
-    // 访问缓存的接口
-    ResourceCache<SDL_Surface>& getSurfaceCache() { return m_surfaceCache; }
-    ResourceCache<SDL_Texture>& getTextureCache() { return m_textureCache; }
-    ResourceCache<TTF_Font>& getFontCache() { return m_fontCache; }
-    ResourceCache<IMG_Animation>& getAnimationCache() { return m_animationCache; }
+    // 访问缓存的接口，有set方法就不能返回const了
+    ResourceCache<SDL_Surface*>& getSurfaceCache() { return m_surfaceCache; }
+    ResourceCache<SDL_Texture*>& getTextureCache() { return m_textureCache; }
+    ResourceCache<TTF_Font*>& getFontCache() { return m_fontCache; }
+    ResourceCache<IMG_Animation*>& getAnimationCache() { return m_animationCache; }
 
 };
 

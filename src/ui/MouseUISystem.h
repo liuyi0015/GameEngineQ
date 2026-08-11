@@ -13,7 +13,7 @@
 #include "UIComponents.h"
 #include "../ecs/Util.h"
 template<typename EventType>
-static std::vector<Entity> getSortedMouseColliders(const std::shared_ptr<Scene>&scene) {
+static std::vector<Entity> getSortedMouseColliders(Scene* scene) {
     auto entities = std::vector<Entity>();
     for (auto entity : ecs::getEntities<EventType>(scene)) {
         if (ecs::getComponent<MouseColliderFlag>(scene,entity).has_value()&&ecs::getComponent<EventType>(scene,entity).has_value()) {
@@ -22,9 +22,9 @@ static std::vector<Entity> getSortedMouseColliders(const std::shared_ptr<Scene>&
     }
     return entities;
 }
-class MouseColliderSystem :public ecs::System{
+class MouseUISystem :public ecs::System{
 public:
-    explicit MouseColliderSystem(const std::shared_ptr<Scene> &scene)
+    explicit MouseUISystem(Scene* scene)
         : System(scene){
     }
     void start() override;

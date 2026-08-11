@@ -6,9 +6,9 @@
 
 #include <cassert>
 
-#include "GameComponents.h"
-#include "../EventDispatcher.h"
-#include "../2d/transform2d/Transform2dComponents.h"
+#include "../GameComponents.h"
+#include "../../EventDispatcher.h"
+#include "../../2d/transform2d/Transform2dComponents.h"
 
 void ScalerSystem::onFixedUpdate(double deltaTime) {
     auto transformComp = ecs::getComponent<TransformComp>(scene, curEntity);

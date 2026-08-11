@@ -14,9 +14,8 @@
 #include "../transform2d/Transform2dComponents.h"
 #include "../../ecs/Util.h"
 void Physics2DSystem::start() {
-
     b2WorldDef worldDef = b2DefaultWorldDef();
-    worldDef.gravity = (b2Vec2){0.0f, -100.0f};
+    worldDef.gravity = (b2Vec2){0.0f, -300.0f};
     worldId = b2CreateWorld(&worldDef);
 
     for (const auto entity:ecs::getEntities<RigidBodyComp>(scene)) {
@@ -34,7 +33,7 @@ void Physics2DSystem::start() {
         //形状
         b2ShapeDef shapeDef=b2DefaultShapeDef();
         shapeDef.density=1.0f;
-        b2Polygon box=b2MakeBox(0.5f,0.5f);
+        b2Polygon box=b2MakeBox(500.f,50.f);
         //绑定
         const b2BodyId bodyId=b2CreateBody(worldId,&bodyDef);
         b2CreatePolygonShape(bodyId,&shapeDef,&box);
@@ -44,17 +43,15 @@ void Physics2DSystem::start() {
 }
 
 void Physics2DSystem::fixed_update(double deltaTime) {
-    auto config= ApplicationContext::getInstance().get<Config>("config");
     b2World_Step(worldId,static_cast<float>(deltaTime), 4);
     for (const auto entity:ecs::getEntities<RigidBodyComp>(scene)) {
         auto enabledComp = ecs::getComponent<ecs::Enabled>(scene,entity);
-        auto rigidBodyComp = ecs::getComponent<RigidBodyComp>(scene,entity);
-        if (!enabledComp.has_value()||!enabledComp.value().value || !rigidBodyComp.has_value()) {
+        if (!enabledComp.has_value()||!enabledComp.value().value ) {
             continue;
         }
         b2BodyId bodyId = bodyIds[entity];
         b2Vec2 position = b2Body_GetPosition(bodyId);
-        // std::cout<<"物理坐标"<<position.x<<" "<<position.y<<std::endl;
+        // std::cout<<ecs::getComponent<ecs::Name>(scene,entity).value().value<<"的物理坐标"<<position.x<<" "<<position.y<<std::endl;
         b2Rot rotation = b2Body_GetRotation(bodyId);
         auto transformComp = ecs::getComponent<TransformComp>(scene,entity);
         assert(transformComp.has_value()) ;
@@ -63,5 +60,14 @@ void Physics2DSystem::fixed_update(double deltaTime) {
         transformComp.value().transform.rotation.angle = atan2f(rotation.s, rotation.c);
         ecs::setComponent<TransformComp>(scene,entity, transformComp.value());
     }
+}
+
+b2BodyId Physics2DSystem::getBodyIdsByEntity(Entity entity) {
+    return bodyIds[entity];
+}
+
+void Physics2DSystem::setVelocity(Entity entity, b2Vec2 vel) {
+    b2BodyId bid=bodyIds[entity];
+    b2Body_SetLinearVelocity(bid, vel);
 }
 

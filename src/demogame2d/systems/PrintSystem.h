@@ -6,14 +6,14 @@
 #define GAMEENGINE_PRINTSYSTEM_H
 #include <iostream>
 
-#include "../ecs/System.h"
+#include "../../ecs/System.h"
 
 
 class PrintSystem:public ecs::System{
 private:
     int num;
 public:
-    PrintSystem(const std::shared_ptr<Scene>& scene,int num) :System(scene),num(num){
+    PrintSystem(Scene* scene,int num) :System(scene),num(num){
     }
     void start() override {
             std::cout<<"printSystem num:"<<num<<std::endl;

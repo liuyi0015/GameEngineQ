@@ -39,5 +39,11 @@ struct MouseColliderFlag {
     int order;
     bool block;
 };
+struct CanvasComp {
+    int width;
+    int height;
+};
+struct UIFlag{
 
+};
 #endif //GAMEENGINE_UICOMPONENTS_H

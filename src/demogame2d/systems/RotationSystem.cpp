@@ -6,9 +6,9 @@
 
 #include <cassert>
 
-#include "GameComponents.h"
-#include "../EventDispatcher.h"
-#include "../2d/transform2d/Transform2dComponents.h"
+#include "../GameComponents.h"
+#include "../../EventDispatcher.h"
+#include "../../2d/transform2d/Transform2dComponents.h"
 
 void RotationSystem::onFixedUpdate(double deltaTime) {
     assert(ecs::getComponent<TransformComp>(scene, curEntity).has_value() && ecs::getComponent<RotationFlag>(scene, curEntity).has_value());

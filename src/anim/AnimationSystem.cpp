@@ -7,13 +7,13 @@
 #include <cassert>
 
 #include "../ResourceManager.hpp"
-#include "../2d/renderer2d/RenderComponents.h"
+#include "../2d/renderer2d-soft/RenderComponents.h"
 #include "SDL3_image/SDL_image.h"
 
 void AnimationSystem::onStart() {
     auto frameAnimatorFlag=ecs::getComponent<FrameAnimatorFlag>(scene,curEntity).value();
     auto anim=IMG_LoadAnimation(frameAnimatorFlag.path.c_str());
-    ResourceManager::getInstance().getAnimationCache().set(frameAnimatorFlag.name, std::shared_ptr<IMG_Animation>(anim,IMG_FreeAnimation));
+    ResourceManager::getInstance().getAnimationCache().set(frameAnimatorFlag.name, anim);
 }
 
 void AnimationSystem::onUpdate(double deltaTime) {
@@ -28,7 +28,7 @@ void AnimationSystem::onUpdate(double deltaTime) {
     while (frameAnimatorFlag.timer*1000>=animPtr->delays[frameAnimatorFlag.counter]&&frameAnimatorFlag.counter<animPtr->count) {
         frameAnimatorFlag.timer-=animPtr->delays[frameAnimatorFlag.counter]*1.0/1000;
         SDL_Texture* texture=SDL_CreateTextureFromSurface(renderer,animPtr->frames[frameAnimatorFlag.counter]);
-        ResourceManager::getInstance().getTextureCache().set(imageRenderFlag.textureId,std::shared_ptr<SDL_Texture>(texture));
+        ResourceManager::getInstance().getTextureCache().set(imageRenderFlag.textureId,texture);
         frameAnimatorFlag.counter++;
         if (frameAnimatorFlag.counter>=animPtr->count&&frameAnimatorFlag.loop) {
             frameAnimatorFlag.counter=0;

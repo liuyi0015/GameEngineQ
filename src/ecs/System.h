@@ -4,17 +4,18 @@
 
 #ifndef OPENVISUALNOVEL_SYSTEM_H
 #define OPENVISUALNOVEL_SYSTEM_H
-#include <memory>
 
 
+//前向声明防止循环依赖
 class Scene;
+
 namespace ecs {
     class System {
     public:
         //这里只是用指针成员代替传参，普通system是scene的成员，全局system与scene独立，反正都不是包含scene
-        std::shared_ptr<Scene> scene;
+        Scene* scene;
         // System()=delete;
-        explicit System(const std::shared_ptr<Scene>& scene) :
+        explicit System(Scene* scene) :
             scene(scene) {
         }
         virtual ~System() = default;

@@ -19,6 +19,9 @@ struct Config {
     int VSYNC=0;
     int LOGIC_WIDTH=1200;
     int LOGIC_HEIGHT=900;
+    //UI canvas
+    int CANVAS_WIDTH=LOGIC_WIDTH;
+    int CANVAS_HEIGHT=LOGIC_HEIGHT;
     //windows平台配置
     bool SHOW_CONSOLE;
 };
