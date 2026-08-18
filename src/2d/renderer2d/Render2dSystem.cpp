@@ -1,19 +1,26 @@
 //
-// Created by XL0002 on 2026/8/11.
+// Created by XL0002 on 2026/7/22.
 //
 
-#include "UIRenderSystem.h"
+#include "Render2dSystem.h"
 
 #include <algorithm>
 #include <cassert>
-#include "glm/glm.hpp"
-#include "../2d/transform2d/TransformUtil.h"
-#include "../2d/renderer2d/RenderComponents.h"
+
+#include "RenderComponents.h"
 #include "SDL3/SDL_log.h"
-#include "../ResourceManager.hpp"
-#include "../2d/renderer2d/Render2dUtil.h"
-UIRenderSystem::~UIRenderSystem() {
-    //ui场景里通常只有一个渲染系统，不会有其他渲染系统重复释放
+#include "SDL3_image/SDL_image.h"
+#include "SDL3_ttf/SDL_ttf.h"
+#include "../../ResourceManager.hpp"
+#include "../transform2d/Transform2dComponents.h"
+#include "../transform2d/TransformUtil.h"
+#include "../../ecs/Util.h"
+#include "cmath"
+#include "Render2dUtil.h"
+#include "../../Context.hpp"
+#include "../../Config.h"
+Render2dSystem::~Render2dSystem() {
+    //2d场景里通常只有一个渲染系统，不会有其他渲染系统重复释放
     for (const auto entity:ecs::getEntities<ImageRendererFlag>(scene)) {
         auto imageRendererComp = ecs::getComponent<ImageRendererFlag>(scene, entity).value();
         auto texture=ResourceManager::getInstance().getTextureCache().get(imageRendererComp.texResourceId);
@@ -27,8 +34,8 @@ UIRenderSystem::~UIRenderSystem() {
         ResourceManager::getInstance().getTextureCache().erase(imageRendererComp.texResourceId);
     }
 }
+void Render2dSystem::start() {
 
-void UIRenderSystem::start() {
     //筛选加载资源
     auto drawableEntities=ecs::getEntities<DrawableFlag>(scene);
     std::cout<<"初始绘制"<<drawableEntities.size()<<"个实体"<<std::endl;
@@ -58,17 +65,17 @@ void UIRenderSystem::start() {
     }
 }
 
-void UIRenderSystem::draw() {
+static glm::mat3 getViewMatrix(const Transform &cameraTransform) {
+    Transform transform=cameraTransform;
+    transform.scale={1.0f,1.0f};//摄像机的scale不影响视图变换
+    glm::mat3 viewMatrix=TransformUtil::getReverseTransformToMatrix(transform);
+    return viewMatrix;
+}
+
+void Render2dSystem::draw() {
     SDL_SetRenderTarget(renderer,target);
-
-    SDL_SetRenderDrawColor(renderer, 0, 0, 100, 55);//test
+    SDL_SetRenderDrawColor(renderer, 0, 100, 100, 0);//test
     SDL_RenderClear(renderer);
-    //即时模式也可
-    SDL_SetRenderDrawColor(renderer,200,100,100,155);
-    SDL_FRect rect={300.0f,300.0f,400.0f,100.0f};
-    SDL_RenderFillRect(renderer,&rect);
-
-    //筛选加载资源
     std::vector<std::pair<int,Entity>> drawableEntities;
     for (const auto entity:ecs::getEntities<DrawableFlag>(scene)) {
         if (ecs::getComponent<DrawableFlag>(scene, entity).has_value()) {
@@ -79,21 +86,25 @@ void UIRenderSystem::draw() {
     // sort by zOrder (ascending), stable to preserve insertion order for equal z
     std::stable_sort(drawableEntities.begin(), drawableEntities.end(),
                      [](const auto &a, const auto &b){ return a.first < b.first; });
-    auto config=ApplicationContext::getInstance().get<Config>("config");
+
     for (const auto [zOrder,entity]:drawableEntities) {
         auto transformComp = ecs::getComponent<TransformComp>(scene, entity);
         assert(transformComp.has_value());
         auto drawableFlag= ecs::getComponent<DrawableFlag>(scene, entity);
+        auto cameraComp = ecs::getComponent<CameraComp>(scene, camera).value();
+        auto cameraTransformComp=ecs::getComponent<TransformComp>(scene, camera).value();
+        auto cameraWorldTransform=TransformUtil::computeLocalToWorldTransform(cameraTransformComp,scene);
         auto worldTransform = TransformUtil::computeLocalToWorldTransform(transformComp.value(),scene);
         auto modelMatrix=TransformUtil::transformToMatrix(worldTransform);
-        auto viewMatrix = glm::mat3(1.0f);//没有相机，单位矩阵
+        auto viewMatrix = getViewMatrix(cameraWorldTransform);
         auto projectMatrix=glm::mat3(1.0f);//没有投影，单位矩阵
         auto mvpMatrix=projectMatrix*viewMatrix*modelMatrix;
         SDL_Color& color=drawableFlag.value().color;
+
         if (ecs::getComponent<CircleRendererFlag>(scene, entity).has_value()) {
             auto circleRenderFlagComp=ecs::getComponent<CircleRendererFlag>(scene, entity);
-            Render2dUtil::drawCircle(renderer, mvpMatrix,  circleRenderFlagComp.value().radius, color, circleRenderFlagComp.value().segments,config.LOGIC_WIDTH,config.LOGIC_HEIGHT,target->w,target->h);
-        }else if (ecs::getComponent<RectRendererFlag>(scene, entity).has_value()) {
+            Render2dUtil::drawCircle(renderer, mvpMatrix,  circleRenderFlagComp.value().radius, color, circleRenderFlagComp.value().segments,cameraComp.captureWidth,cameraComp.captureHeight,target->w,target->h);
+        }else if (ecs::getComponent<RectRendererFlag>(scene, entity).has_value()){
             auto rectRenderFlagComp = ecs::getComponent<RectRendererFlag>(scene, entity).value();
             float w = rectRenderFlagComp.width;
             float h = rectRenderFlagComp.height;
@@ -104,7 +115,7 @@ void UIRenderSystem::draw() {
                 {w,h},
                 {0,h}
             };
-            Render2dUtil::drawTexture(renderer,nullptr,uvs,color, mvpMatrix,config.LOGIC_WIDTH,config.LOGIC_HEIGHT,target->w, target->h);
+            Render2dUtil::drawTexture(renderer,nullptr,uvs,color, mvpMatrix,cameraComp.captureWidth,cameraComp.captureHeight,target->w, target->h);
         }else if (ecs::getComponent<TextRendererFlag>(scene, entity).has_value()) {
             auto textRendererComp = ecs::getComponent<TextRendererFlag>(scene, entity);
             auto cachedTexture = ResourceManager::getInstance().getTextureCache().get(textRendererComp.value().texResourceId);
@@ -122,7 +133,7 @@ void UIRenderSystem::draw() {
                 {w,h},
                 {0,h}
             };
-            Render2dUtil::drawTexture(renderer, cachedTexture,uvs, color, mvpMatrix,config.LOGIC_WIDTH,config.LOGIC_HEIGHT,target->w,target->h);
+            Render2dUtil::drawTexture(renderer, cachedTexture,uvs, color, mvpMatrix,cameraComp.captureWidth,cameraComp.captureHeight,target->w,target->h);
         }else if (ecs::getComponent<ImageRendererFlag>(scene, entity).has_value()) {
             auto imageRendererComp = ecs::getComponent<ImageRendererFlag>(scene, entity);
            auto texture = ResourceManager::getInstance().getTextureCache().get(imageRendererComp.value().texResourceId);
@@ -130,7 +141,6 @@ void UIRenderSystem::draw() {
                 SDL_Log("Warning:缓存里没有 %s", imageRendererComp.value().texResourceId.c_str());
                 return;
             }
-            // 获取纹理尺寸
             // 获取纹理尺寸
             float w = imageRendererComp.value().width;
             float h = imageRendererComp.value().height;
@@ -141,7 +151,7 @@ void UIRenderSystem::draw() {
                 {w,h},
                 {0,h}
             };
-            Render2dUtil::drawTexture(renderer,texture,uvs, color, mvpMatrix,config.LOGIC_WIDTH,config.LOGIC_HEIGHT,target->w,target->h);
+            Render2dUtil::drawTexture(renderer, texture,uvs, color, mvpMatrix, cameraComp.captureWidth,cameraComp.captureHeight,target->w,target->h);
         }
 
     }

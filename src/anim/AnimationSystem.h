@@ -13,9 +13,12 @@ class AnimationSystem:public ecs::MonoBehaviourSystem<FrameAnimatorFlag>{
 protected:
     SDL_Renderer *renderer;
 public:
-    explicit AnimationSystem(Scene* scene,SDL_Renderer* renderer)
+    explicit AnimationSystem(ecs::Scene* scene,SDL_Renderer* renderer)
         : ecs::MonoBehaviourSystem<FrameAnimatorFlag>(scene) , renderer(renderer){
     }
+
+    ~AnimationSystem();
+
     void onStart() override;
     void onUpdate(double deltaTime) override;
     void onFixedUpdate(double deltaTime) override{};

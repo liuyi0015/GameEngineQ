@@ -10,6 +10,7 @@
 
 #include "Context.hpp"
 #include "EventDispatcher.h"
+#include "RenderCompositor.h"
 #include "ecs/Scene.h"
 #include "ecs/System.h"
 #include "ecs/Util.h"
@@ -23,43 +24,43 @@ struct SystemComparer{
 };
 //可以直接用在main里，相当于空应用
 class EcsApplication {
-private:
 protected:
-    Scene* scene;
-    std::vector<Scene*> global_scenes;
-    void switch_scene(const std::string& sceneName) {
-        auto* oldScene=scene;
-        scene=loadScene(sceneName);
-        //手动释放
-        delete oldScene;
-        if (scene!=nullptr) {
-            //修改全局参数
-            for (const auto& gScene:global_scenes) {
-                for (const auto& [systemId,system]:gScene->systemIds) {
-                    system->scene=scene;
-                }
+    RenderCompositor compositor;
+    std::vector<ecs::Scene*> scenes,global_scenes;
+
+    ecs::Scene* getSceneByName(const std::string& sceneName) {
+        for (auto scene : scenes) {
+            if (scene->name == sceneName) {
+                return scene;
             }
-            //
-            std::sort(scene->system_start_orders.begin(), scene->system_start_orders.end(), SystemComparer());
-            std::sort(scene->system_update_orders.begin(), scene->system_update_orders.end(), SystemComparer());
-            std::sort(scene->system_fixed_update_orders.begin(), scene->system_fixed_update_orders.end(), SystemComparer());
-            std::sort(scene->system_draw_orders.begin(), scene->system_draw_orders.end(), SystemComparer());
+        }
+        return nullptr;
+    }
+    void addScene(const std::string& sceneName) {
+        ecs::Scene* newScene=loadScene(sceneName);
+        if (newScene!=nullptr) {
+            scenes.push_back(newScene);
+            std::sort(newScene->system_start_orders.begin(), newScene->system_start_orders.end(), SystemComparer());
+            std::sort(newScene->system_update_orders.begin(), newScene->system_update_orders.end(), SystemComparer());
+            std::sort(newScene->system_fixed_update_orders.begin(), newScene->system_fixed_update_orders.end(), SystemComparer());
+            std::sort(newScene->system_draw_orders.begin(), newScene->system_draw_orders.end(), SystemComparer());
             start();
         }else {
             SDL_Log("场景%s不存在",sceneName.c_str());
         }
     }
 public:
-    EcsApplication() {
-        //默认保留一个空场景，不然空指针会导致程序崩溃
-        scene=new Scene();
-    }
     virtual ~EcsApplication() = default;
-    virtual Scene* loadScene(std::string sceneName) { return nullptr; };
+    virtual ecs::Scene* loadScene(std::string sceneName) { return nullptr; }
+    virtual bool unloadScene(std::string sceneName) { return true; }
     virtual void init() {
-        EventDispatcher::getInstance().subscribe("switch_scene",[this](std::any param) {
-            const auto sceneName=std::any_cast<std::string>(param);
-            switch_scene(sceneName);
+        EventDispatcher::getInstance().subscribe("add scene",[this](std::any param) {
+            const auto sceneName=std::any_cast<const char*>(param);
+            addScene(sceneName);
+        },false,false);
+        EventDispatcher::getInstance().subscribe("remove scene",[this](std::any param) {
+            const auto sceneName=std::any_cast<const char*>(param);
+            delete getSceneByName(sceneName);
         },false,false);
         for (const auto& scene : global_scenes) {
             std::sort(scene->system_start_orders.begin(), scene->system_start_orders.end(), SystemComparer());
@@ -75,9 +76,11 @@ public:
                 system->start();
             }
         }
-        for (const auto& systemOrder:scene->system_start_orders) {
-            auto system=ecs::getSystemById(scene,systemOrder.first);
-            system->start();
+        for (const auto& scene:scenes) {
+            for (const auto& systemOrder:scene->system_start_orders) {
+                auto system=ecs::getSystemById(scene,systemOrder.first);
+                system->start();
+            }
         }
     }
     void update(double deltaTime) {
@@ -87,9 +90,11 @@ public:
                 system->update(deltaTime);
             }
         }
-        for (const auto& systemOrder:scene->system_update_orders) {
-            auto system=ecs::getSystemById(scene,systemOrder.first);
-            system->update(deltaTime);
+        for (const auto& scene:scenes) {
+            for (const auto& systemOrder:scene->system_update_orders) {
+                auto system=ecs::getSystemById(scene,systemOrder.first);
+                system->update(deltaTime);
+            }
         }
     }
     void fixed_update(double deltaTime) {
@@ -99,9 +104,11 @@ public:
                 system->fixed_update(deltaTime);
             }
         }
-        for (const auto& systemOrder:scene->system_fixed_update_orders) {
-            auto system=ecs::getSystemById(scene,systemOrder.first);
-            system->fixed_update(deltaTime);
+        for (const auto& scene:scenes) {
+            for (const auto& systemOrder:scene->system_fixed_update_orders) {
+                auto system=ecs::getSystemById(scene,systemOrder.first);
+                system->fixed_update(deltaTime);
+            }
         }
     }
     void draw() {
@@ -111,10 +118,13 @@ public:
                 system->draw();
             }
         }
-        for (const auto& systemOrder:scene->system_draw_orders) {
-            auto system=ecs::getSystemById(scene,systemOrder.first);
-            system->draw();
+        for (const auto& scene:scenes) {
+            for (const auto& systemOrder:scene->system_draw_orders) {
+                auto system=ecs::getSystemById(scene,systemOrder.first);
+                system->draw();
+            }
         }
+        compositor.compositeTextures();
     }
 };
 

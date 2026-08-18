@@ -13,6 +13,14 @@
 #include "../../Config.h"
 #include "../transform2d/Transform2dComponents.h"
 #include "../../ecs/Util.h"
+
+Physics2DSystem::~Physics2DSystem() {
+    if (b2World_IsValid(worldId)) {
+        b2DestroyWorld(worldId);
+    }
+    //如果后续你加了关节，要再单独销毁。
+}
+
 void Physics2DSystem::start() {
     b2WorldDef worldDef = b2DefaultWorldDef();
     worldDef.gravity = (b2Vec2){0.0f, -300.0f};
@@ -33,7 +41,7 @@ void Physics2DSystem::start() {
         //形状
         b2ShapeDef shapeDef=b2DefaultShapeDef();
         shapeDef.density=1.0f;
-        b2Polygon box=b2MakeBox(500.f,50.f);
+        b2Polygon box=b2MakeBox(50.f,50.f);
         //绑定
         const b2BodyId bodyId=b2CreateBody(worldId,&bodyDef);
         b2CreatePolygonShape(bodyId,&shapeDef,&box);

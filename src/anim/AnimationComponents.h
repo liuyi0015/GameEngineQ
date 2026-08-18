@@ -6,11 +6,14 @@
 #define GAMEENGINE_ANIMATIONCOMPONENTS_H
 #include <string>
 
+#include "SDL3_image/SDL_image.h"
+#include <vector>
 struct FrameAnimatorFlag {
     std::string name;
     std::string path;
     bool loop;
     int counter=0;
     double timer=0;
+    std::vector<SDL_Texture*> textures;
 };
 #endif //GAMEENGINE_ANIMATIONCOMPONENTS_H

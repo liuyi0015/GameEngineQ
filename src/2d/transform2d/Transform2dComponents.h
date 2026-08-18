@@ -41,7 +41,7 @@ struct TransformComp {
     std::optional<Entity> parent;
 };
 struct CameraComp {
-    float viewportWidth;
-    float viewportHeight;
+    float captureWidth;
+    float captureHeight;
 };
 #endif //GAMEENGINE_TRANSFORM2DCOMPONENTS_H

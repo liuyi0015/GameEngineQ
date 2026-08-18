@@ -6,10 +6,9 @@
 #define OPENVISUALNOVEL_SYSTEM_H
 
 
-//前向声明防止循环依赖
-class Scene;
-
 namespace ecs {
+    class Scene;
+
     class System {
     public:
         //这里只是用指针成员代替传参，普通system是scene的成员，全局system与scene独立，反正都不是包含scene

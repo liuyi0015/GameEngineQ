@@ -29,7 +29,7 @@ public:
         return m_cache.find(key) != m_cache.end();
     }
 
-    void remove(const std::string& key) {
+    void erase(const std::string& key) {
         m_cache.erase(key);
     }
     void trash(const std::string& key) {

@@ -1,21 +1,20 @@
 cmake_minimum_required(VERSION 4.0)
-set(projectname GameEngine)
+set(projectname GameEngineQ)
 project(${projectname})
 
 set(CMAKE_CXX_STANDARD 17)
 
-# 第1步：编译主程序源文件
+# 编译主程序源文件
 file(GLOB_RECURSE GAMEENGINE_SOURCES CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/src/**.cpp"
 )
-list(SORT GAMEENGINE_SOURCES)
+#list(SORT GAMEENGINE_SOURCES)
 
 add_executable(${projectname}
         ${GAMEENGINE_SOURCES}
 )
 
-#add_subdirectory(mineSweeper)
-# 第4步：添加其他第三方库（有Cmake配置文件）
+# 添加其他第三方库（有Cmake配置文件）
 # add之前要先设好参数，即：使用ttf默认的字体库
 set(SDLTTF_VENDORED ON)
 
@@ -25,7 +24,7 @@ add_subdirectory(third-party/SDL3_image-3.2.6 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/SDL3_mixer-3.2.4 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/box2d-3.1.1 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/glm EXCLUDE_FROM_ALL)
-# 第四步：链接所有依赖（静态）
+# 链接所有依赖（动态）
 target_link_libraries(${projectname} PUBLIC
         SDL3::SDL3
         SDL3_ttf::SDL3_ttf
@@ -34,10 +33,12 @@ target_link_libraries(${projectname} PUBLIC
         box2d::box2d
         glm::glm
 )
-
+#静态库
+#link_libraries()
+#link_directories()
 # 添加 sol 头文件
 #target_include_directories(${projectname} PRIVATE ${PROJECT_SOURCE_DIR}/third-party/sol-3.3.0/include)
-
+# 添加从网络获取的库
 include(FetchContent)
 FetchContent_Declare(box3d
         GIT_REPOSITORY https://github.com/erincatto/box3d.git

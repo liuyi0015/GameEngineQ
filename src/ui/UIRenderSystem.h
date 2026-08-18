@@ -14,15 +14,14 @@
 class UIRenderSystem :public ecs::System{
 private:
     SDL_Renderer* renderer;
-    SDL_Texture* canvas;
+    SDL_Texture* target;
 public:
-    explicit UIRenderSystem(Scene* scene,SDL_Renderer* renderer)
-        : System(scene),renderer(renderer){
-        Entity canvas_item=ecs::getEntities<CanvasComp>(scene)[0];
-        auto canvas_prop = ecs::getComponent<CanvasComp>(scene,canvas_item).value();
-        canvas=SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,
-            canvas_prop.width,canvas_prop.height);
+    explicit UIRenderSystem(ecs::Scene* scene,SDL_Texture* target)
+        : System(scene){
+        renderer=ApplicationContext::getInstance().get<SDL_Renderer*>("renderer");
+        this->target=target;
     }
+    ~UIRenderSystem() override;
     void start() override;
     void update(double deltaTime) override{};
     void fixed_update(double deltaTime) override{};

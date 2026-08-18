@@ -9,7 +9,7 @@
 #include <queue>
 #include <string>
 
-struct EventCallback{
+struct SubscribeInfo{
     std::string name;
     std::function<void(std::any)> callback;
     std::any param=nullptr;
@@ -20,9 +20,11 @@ struct EventCallback{
 };
 class EventDispatcher {
 private:
-    std::vector<EventCallback> subscribed_events;
+    size_t subscribeId=0;
+    std::unordered_map<std::string,std::vector<size_t> >id_group;
+    std::unordered_map<size_t,SubscribeInfo> subscribed_events{};
     //延迟执行队列
-    std::queue< EventCallback> published_events;
+    std::queue< SubscribeInfo> published_events{};
     EventDispatcher()=default;
 public:
     static EventDispatcher& getInstance() {
@@ -31,9 +33,11 @@ public:
     }
     void consumeEvents();//主循环调用
     void publish(const std::string &event_name, std::any param);
-    void subscribe(std::string event_name,std::function<void(std::any)>callback,
+    size_t subscribe(std::string event_name,std::function<void(std::any)>callback,
         bool isOnce=false,bool nextFrame=true);
+    bool unsubscribe(size_t id);
 };
 
-
+class EventUtil {
+};
 #endif //GAMEENGINE_EVENTSYSTEM_H
