@@ -6,7 +6,7 @@
 #define GAMEENGINE_PRINTSYSTEM_H
 #include <iostream>
 
-#include "../../ecs/System.h"
+#include "../../core/ecs/System.h"
 
 
 class PrintSystem:public ecs::System{

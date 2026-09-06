@@ -5,7 +5,7 @@
 #ifndef GAMEENGINE_ANIMATOR_H
 #define GAMEENGINE_ANIMATOR_H
 #include "AnimationComponents.h"
-#include "../ecs/MonoBehaviourSystem.h"
+#include "../core/ecs/MonoBehaviourSystem.h"
 #include "SDL3/SDL_render.h"
 
 

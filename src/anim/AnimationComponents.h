@@ -14,6 +14,5 @@ struct FrameAnimatorFlag {
     bool loop;
     int counter=0;
     double timer=0;
-    std::vector<SDL_Texture*> textures;
 };
 #endif //GAMEENGINE_ANIMATIONCOMPONENTS_H

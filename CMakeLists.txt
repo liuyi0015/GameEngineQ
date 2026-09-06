@@ -39,11 +39,12 @@ target_link_libraries(${projectname} PUBLIC
 #link_directories()
 # 添加 sol 头文件
 #target_include_directories(${projectname} PRIVATE ${PROJECT_SOURCE_DIR}/third-party/sol-3.3.0/include)
-# 添加从网络获取的库
-include(FetchContent)
-FetchContent_Declare(box3d
-        GIT_REPOSITORY https://github.com/erincatto/box3d.git
-        GIT_TAG v0.1.0)
-FetchContent_MakeAvailable(box3d)
 
-target_link_libraries(${projectname} PRIVATE box3d::box3d)
+# 添加从网络获取的库
+#include(FetchContent)
+#FetchContent_Declare(box3d
+#        GIT_REPOSITORY https://github.com/erincatto/box3d.git
+#        GIT_TAG v0.1.0)
+#FetchContent_MakeAvailable(box3d)
+#
+#target_link_libraries(${projectname} PRIVATE box3d::box3d)
