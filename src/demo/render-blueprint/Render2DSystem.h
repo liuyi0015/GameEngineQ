@@ -18,9 +18,8 @@ private:
     ColorBuffer* target;
     Entity camera;
 public:
-    explicit Render2DSystem(ecs::Scene* scene,int w,int h,Entity camera,RenderContext* renderContext)
-        : System(scene),camera(camera),renderContext(renderContext){
-        this->target=new ColorBuffer( w, h);
+    explicit Render2DSystem(ecs::Scene* scene,ColorBuffer* target,Entity camera,RenderContext* renderContext)
+        : System(scene),target(target),camera(camera),renderContext(renderContext){
         this->gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
     }
     void start() override;

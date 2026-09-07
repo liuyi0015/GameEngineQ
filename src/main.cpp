@@ -117,7 +117,7 @@ static int main_loop() {
         }
     	//提交渲染
     	mygpu->present();
-    	if (handleEvents()) break;
+    	if (!handleEvents()) break;
 	}
 	SDL_Quit();
     return 0;
@@ -143,7 +143,7 @@ static void testEvents() {
 	},true);
 	for (int i=0;i<2;i++) {
 		std::string param="param"+std::to_string(i);
-		// 可能为空时使用指针
+		// 可能为空时应使用指针
 		std::string* paramPtr=nullptr;
 		EventBus::getInstance().publish("testEvent", paramPtr);
 		//使用引用
@@ -157,7 +157,7 @@ int main() {
 	SetConsoleOutputCP(65001); // Set console to CP_UTF8
 #endif
 	init();
-	// testEvents();
+	testEvents();
 	main_loop();
 	return 0;
 }

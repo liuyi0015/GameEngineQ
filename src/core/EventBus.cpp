@@ -30,19 +30,22 @@ void EventBus::consumeEvents() {
 }
 
 void EventBus::publish(const std::string& event_name,std::any param) {
-
-    //倒序删除
+    std::vector<unsigned long long>removeIds;
     //复制，不能用&，不然std::move会移走subscribed_events的元素，相当于总是isOnce
     for (auto [id,eventCallback]:subscribed_events){
         if (eventCallback.name==event_name){
             if (eventCallback.isOnce){
                 //这里的自动转换应该是转换成const类型
-                subscribed_events.erase(id);
+                //直接删除会引发迭代器失效，缓冲一下
+                removeIds.push_back(id);
             }
             eventCallback.param=param;
             //传引用，subscribed->published
             published_events.push(std::move(eventCallback));
         }
+    }
+    for (auto id:removeIds) {
+        subscribed_events.erase(id);
     }
 }
 

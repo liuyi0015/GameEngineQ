@@ -10,12 +10,12 @@
 #include "../../core/ecs/Entity.h"
 #include "../../soft-render/RenderContext.h"
 
-class UploadPassSystem:public ecs::System{
+class UploadSystem:public ecs::System{
 private:
     RenderContext* renderContext;
     SoftGPU* gpu;
 public:
-    explicit UploadPassSystem(ecs::Scene* scene,RenderContext* render_context)
+    explicit UploadSystem(ecs::Scene* scene,RenderContext* render_context)
         : System(scene),renderContext(render_context){
         gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
     }

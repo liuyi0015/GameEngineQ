@@ -42,15 +42,17 @@ static Uniform * collectUniform(ecs::Scene* scene,Entity entity,Entity camera) {
     int clipW=cameraComp->captureWidth;
     int clipH=cameraComp->captureHeight;
     auto projectMatrix=glm::mat3(
-        2/clipW,0,0,
-        0,2/clipH,0,
+        2.0f/clipW,0,0,
+        0,2.0f/clipH,0,
         0,0,1
         );//没有投影但要坐标归一化
     auto mvpMatrix=projectMatrix*viewMatrix*modelMatrix;
     auto texture= ResourceManager::getInstance().getSurfaceCache().get(drawableFlag.value().material.texResourceId);
     auto* uniform=new Uniform();
     uniform->mvpMatrix=mvpMatrix;
-    uniform->texture=new ColorBuffer(texture);
+    if (texture!=nullptr) {
+        uniform->texture=new ColorBuffer(texture);
+    }
     // uniform.color=drawableFlag.value().color;
     return uniform;
 }

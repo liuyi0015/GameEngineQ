@@ -5,11 +5,13 @@
 #ifndef GAMEENGINEQ_GEOMETRYBUILDER_H
 #define GAMEENGINEQ_GEOMETRYBUILDER_H
 #include <cmath>
+#include <iostream>
+#include <ostream>
 #include <vector>
 
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
-namespace Mesh {
+namespace Geometry {
 
     struct CircleComponent {
         float radius;
@@ -35,6 +37,7 @@ namespace Mesh {
         }
         //面积
         [[nodiscard]] float area()const {
+            // std::cout<<"area()"<<std::abs(p1.x*(p2.y-p3.y)+p2.x*(p3.y-p1.y)+p3.x*(p1.y-p2.y)/2.0f)<<std::endl;
             return std::abs(p1.x*(p2.y-p3.y)+p2.x*(p3.y-p1.y)+p3.x*(p1.y-p2.y)/2.0f);
         }
     };

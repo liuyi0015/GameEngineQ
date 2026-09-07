@@ -6,7 +6,6 @@
 #include "GameComponents.h"
 #include "../core/ecs/BaseComponents.h"
 #include "../core/transform/transform2d/Transform2dComponents.h"
-#include "../../logs/Prefabs.h"
 #include "../Config.h"
 #include "simple-systems/ChangeTransformSystem.h"
 #include "../anim/AnimationSystem.h"
@@ -14,6 +13,8 @@
 #include "SDL3_ttf/SDL_ttf.h"
 #include "simple-systems/PrintSystem.h"
 #include "../core/ResourceManager.hpp"
+#include "render-blueprint/Render2DSystem.h"
+#include "render-blueprint/UploadSystem.h"
 
 // ecs::Scene *DemogameApplication::loadScene1() {
 //
@@ -77,13 +78,14 @@ public:
         //     ecs::setComponent<RotationFlag>(scene, img1, RotationFlag{20});
         //     auto* rotationSystem=new ChangeTransformSystem(scene);
         //     ecs::addSystem(scene,rotationSystem,{});
+        //     auto* animationSystem=new AnimationSystem(scene,renderer);
+        //     ecs::addSystem(scene,animationSystem,{});
         // }
         // {
         //
-        //     //摄像机的视口大小与transform(scale)无关，只看CameraComp
-        //     Entity camera2=Prefabs::camera(scene);
-        //     ecs::setComponent<CameraInputListenerFlag>(scene, camera2, {});
-        //     auto* cameraInputListenerSystem=new CameraInputListenerSystem(scene);
+
+        // ecs::setComponent<CameraInputListenerFlag>(scene, camera2, {});
+        // auto* cameraInputListenerSystem=new CameraInputListenerSystem(scene);
         //     ecs::addSystem(scene,cameraInputListenerSystem,{});
         // }
         {
@@ -93,21 +95,45 @@ public:
             auto* print_system2 = new PrintSystem(this,2);
             ecs::addSystem(this,print_system2,{});
         }
-        // {
-        //     //render
-        //     auto* renderer=ApplicationContext::getInstance().get<SDL_Renderer*>("renderer");
-        //     auto* animationSystem=new AnimationSystem(scene,renderer);
-        //     ecs::addSystem(scene,animationSystem,{});
-        //     auto config=ApplicationContext::getInstance().get<Config>("config");
-        //     SDL_Texture* target=SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA8888,
-        //         SDL_TEXTUREACCESS_TARGET,config.LOGIC_WIDTH,config.LOGIC_HEIGHT);
-        //     //要显示到屏幕的才直接给compositor
-        //     compositor.addTarget(scene,target);
-        //     //todo 小屏幕渲染目标(不给compositor)
-        //     auto* render2dSystem=new Render2dSystem(scene,target,camera2);
-        //     ecs::addSystem(scene,render2dSystem,{});
-        //
-        // }
+        {
+            //image
+            Entity img1_entity=ecs::createEntity(this);
+            ecs::setComponent<ecs::Name>(this,img1_entity, ecs::Name{"img1"});
+            ecs::setComponent<ecs::Enabled>(this,img1_entity, ecs::Enabled{true});
+            ecs::setComponent<TransformComp>(this,img1_entity, TransformComp{});
+            Geometry::Shape2D rect=Geometry::createRect({0,0},{988,852});
+            Mesh mesh;
+            mesh.vertices.reserve(rect.points.size());
+            mesh.indices.reserve(rect.points.size());
+            for (int i=0;i<rect.points.size();i++) {
+                mesh.vertices[i].pos={rect.points[i].x,rect.points[i].y};
+                mesh.vertices[i].uv={rect.points[i].x/988.0f,rect.points[i].y/852.0f};
+                mesh.vertices[i].color={1,1,1,1};
+            }
+            mesh.indices=rect.indices;
+            ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,"img1-pass",
+                Material{{"img1-pipeline"},{255,255,255,255},"img1-tex"},
+                mesh});
+        }
+        {
+            //render
+            //摄像机的视口大小与transform(scale)无关，只看CameraComp
+            Entity camera1=ecs::createEntity(this);
+            ecs::setComponent<ecs::Enabled>(this,camera1, ecs::Enabled{true});
+            ecs::setComponent<TransformComp>(this,camera1,TransformComp{});
+            ecs::setComponent<CameraComp>(this,camera1,{800,600});
+            auto* renderContext=new RenderContext();
+            auto config=ApplicationContext::getInstance().get<Config>("config");
+            // auto* target=new ColorBuffer(config.LOGIC_WIDTH,config.LOGIC_HEIGHT);
+            auto* gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
+            auto* target=gpu->swapchain_texture;
+            auto* uploadSystem=new UploadSystem(this,renderContext);
+            auto* render2dSystem=new Render2DSystem(this,target,camera1,renderContext);
+            ecs::addSystem(this,uploadSystem,{0,0,0,1});
+            ecs::addSystem(this,render2dSystem,{0,0,0,2});
+
+            //todo 小屏幕渲染目标(不给compositor)
+        }
     }
     ~Scene1() {
         std::cout<<"unloadScene2"<<std::endl;

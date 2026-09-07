@@ -2,7 +2,7 @@
 // Created by XL0002 on 2026/9/4.
 //
 
-#include "UploadPassSystem.h"
+#include "UploadSystem.h"
 
 #include "Pipelines.h"
 #include "Render2DComponents.h"
@@ -11,30 +11,29 @@
 #include "../../core/transform/transform2d/TransformUtil.h"
 
 
-void UploadPassSystem::draw() {
+void UploadSystem::draw() {
     gpu->vert_buffer.clear();
     gpu->index_buffer.clear();
     for (const auto entity:ecs::getEntities<Drawable2DFlag>(scene)) {
-        auto drawableFlag= ecs::getComponent<Drawable2DFlag>(scene, entity);
-
+        auto drawableFlag= ecs::getComponent<Drawable2DFlag>(scene, entity).value();
         //上传顶点
         renderContext->vertStarts[entity]=gpu->vert_buffer.size();
-        renderContext->vertCounts[entity]=drawableFlag.value().shape.points.size();
-        for (int i=0;i<drawableFlag.value().shape.points.size();i++) {
+        renderContext->vertCounts[entity]=drawableFlag.mesh.vertices.size();
+        for (int i=0;i<drawableFlag.mesh.vertices.size();i++) {
             glm::vec4 fcolor={
-                drawableFlag.value().material.color.r/255.0f,
-                drawableFlag.value().material.color.g/255.0f,
-                drawableFlag.value().material.color.b/255.0f,
-                drawableFlag.value().material.color.a/255.0f,
+                drawableFlag.material.color.r/255.0f,
+                drawableFlag.material.color.g/255.0f,
+                drawableFlag.material.color.b/255.0f,
+                drawableFlag.material.color.a/255.0f,
             };;
-            auto v=new VertexAttrib {drawableFlag.value().shape.points[i],drawableFlag.value().material.uvs[i],fcolor,{0,0}};
+            auto v=new VertexAttrib {drawableFlag.mesh.vertices[i].pos,drawableFlag.mesh.vertices[i].uv,fcolor};
             gpu->vert_buffer.push_back(v);
         }
         //上传索引
         renderContext->indexStarts[entity]=gpu->index_buffer.size();
-        renderContext->indexCounts[entity]=drawableFlag.value().shape.indices.size();
-        for (int i=0;i<drawableFlag.value().shape.indices.size();i++) {
-            glm::ivec3 index=drawableFlag.value().shape.indices[i];
+        renderContext->indexCounts[entity]=drawableFlag.mesh.indices.size();
+        for (int i=0;i<drawableFlag.mesh.indices.size();i++) {
+            glm::ivec3 index=drawableFlag.mesh.indices[i];
             gpu->index_buffer.push_back(index);
         }
     }

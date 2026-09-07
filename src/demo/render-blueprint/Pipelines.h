@@ -17,7 +17,6 @@ struct VertexAttrib {//每个顶点各自的数据
     glm::vec2 pos;// ndc
     glm::vec2 uv;
     glm::vec4 color;
-    glm::vec2 normal;
 };
 struct VertexShaderOutput {
     glm::vec2 pos;

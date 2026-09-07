@@ -15,15 +15,36 @@ add_executable(${projectname}
 )
 
 # 添加其他第三方库（有Cmake配置文件）
+# 记得要先执行库里的ps1脚本
 # add之前要先设好参数，即：使用ttf默认的字体库
 set(SDLTTF_VENDORED ON)
 
-add_subdirectory(third-party/SDL3-3.4.0 EXCLUDE_FROM_ALL)
+add_subdirectory(third-party/SDL3-3.4.16 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/SDL3_ttf-3.2.2 EXCLUDE_FROM_ALL)
-add_subdirectory(third-party/SDL3_image-3.2.6 EXCLUDE_FROM_ALL)
+add_subdirectory(third-party/SDL3_image-3.4.6 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/SDL3_mixer-3.2.4 EXCLUDE_FROM_ALL)
-add_subdirectory(third-party/box2d-3.1.1 EXCLUDE_FROM_ALL)
-add_subdirectory(third-party/glm EXCLUDE_FROM_ALL)
+#静态库
+#link_libraries()
+#link_directories()
+# 添加 sol 头文件
+#target_include_directories(${projectname} PRIVATE ${PROJECT_SOURCE_DIR}/third-party/sol-3.3.0/include)
+
+# 添加从网络获取的库
+include(FetchContent)
+FetchContent_Declare(glm
+        GIT_REPOSITORY https://github.com/icaven/glm.git)
+FetchContent_MakeAvailable(glm)
+
+FetchContent_Declare(box3d
+        GIT_REPOSITORY https://github.com/erincatto/box3d.git
+        GIT_TAG v0.1.0)
+FetchContent_MakeAvailable(box3d)
+FetchContent_Declare(box2d
+        GIT_REPOSITORY https://github.com/erincatto/box2d.git
+        GIT_TAG v3.1.1)
+FetchContent_MakeAvailable(box2d)
+#
+#target_link_libraries(${projectname} PRIVATE box3d::box3d)
 # 链接所有依赖（动态）
 target_link_libraries(${projectname} PUBLIC
         SDL3::SDL3
@@ -33,18 +54,3 @@ target_link_libraries(${projectname} PUBLIC
         box2d::box2d
         glm::glm
 )
-
-#静态库
-#link_libraries()
-#link_directories()
-# 添加 sol 头文件
-#target_include_directories(${projectname} PRIVATE ${PROJECT_SOURCE_DIR}/third-party/sol-3.3.0/include)
-
-# 添加从网络获取的库
-#include(FetchContent)
-#FetchContent_Declare(box3d
-#        GIT_REPOSITORY https://github.com/erincatto/box3d.git
-#        GIT_TAG v0.1.0)
-#FetchContent_MakeAvailable(box3d)
-#
-#target_link_libraries(${projectname} PRIVATE box3d::box3d)

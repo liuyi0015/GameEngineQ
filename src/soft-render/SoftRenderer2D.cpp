@@ -8,11 +8,11 @@
 #include "glm/glm.hpp"
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_surface.h"
-#include "../graphics/MeshBuilder.h"
+#include "../graphics/ShapeBuilder.h"
 
 
 void IPipeline::run(const std::vector<void*> &verts, const std::vector<glm::ivec3> &indices,
-    const void *uniform,ColorBuffer* const target) {
+                    const void *uniform,ColorBuffer* const target) {
     //顶点着色
     void* vert_outs[verts.size()];
     for (int i = 0; i < verts.size(); ++i) {
@@ -24,7 +24,7 @@ void IPipeline::run(const std::vector<void*> &verts, const std::vector<glm::ivec
         auto vert_out0=*(VertexAttrib*)vert_outs[indices[k][0]];
         auto vert_out1=*(VertexAttrib*)vert_outs[indices[k][1]];
         auto vert_out2=*(VertexAttrib*)vert_outs[indices[k][2]];
-        Mesh::PointTriangle2D triangle{vert_out0.pos,vert_out1.pos,vert_out2.pos};
+        Geometry::PointTriangle2D triangle{vert_out0.pos,vert_out1.pos,vert_out2.pos};
         //先宽后高
         for (int i=0;i<target->width;i++) {
             for (int j=0;j<target->height;j++) {
@@ -38,9 +38,9 @@ void IPipeline::run(const std::vector<void*> &verts, const std::vector<glm::ivec
                     FragmentAttrib frag{};
                     frag.viewPos=pos;
                     //面积比表示重心坐标
-                    Mesh::PointTriangle2D triangle0{pos,t0,t1};
-                    Mesh::PointTriangle2D triangle2{pos,t1,t2};
-                    Mesh::PointTriangle2D triangle1{pos,t2,t0};
+                    Geometry::PointTriangle2D triangle0{pos,t0,t1};
+                    Geometry::PointTriangle2D triangle2{pos,t1,t2};
+                    Geometry::PointTriangle2D triangle1{pos,t2,t0};
                     //颜色插值
                     float r0=vert_out0.color.r;
                     float r1=vert_out1.color.r;
