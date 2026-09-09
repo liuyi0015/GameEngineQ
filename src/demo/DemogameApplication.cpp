@@ -89,6 +89,14 @@ public:
         //     ecs::addSystem(scene,cameraInputListenerSystem,{});
         // }
         {
+            //加载资源
+            auto* img1=IMG_Load("assets/1.png");
+            ResourceManager::getInstance().getSurfaceCache().set("img1-tex",img1);
+        }
+        {
+            //普通system
+            auto* changeTransformSystem=new ChangeTransformSystem(this);
+            ecs::addSystem(this,changeTransformSystem,{});
             //顺序test
             auto* print_system1 = new PrintSystem(this,1);
             ecs::addSystem(this,print_system1,{10,0,0,0});
@@ -103,16 +111,16 @@ public:
             ecs::setComponent<TransformComp>(this,img1_entity, TransformComp{});
             Geometry::Shape2D rect=Geometry::createRect({0,0},{988,852});
             Mesh mesh;
-            mesh.vertices.reserve(rect.points.size());
-            mesh.indices.reserve(rect.points.size());
             for (int i=0;i<rect.points.size();i++) {
-                mesh.vertices[i].pos={rect.points[i].x,rect.points[i].y};
-                mesh.vertices[i].uv={rect.points[i].x/988.0f,rect.points[i].y/852.0f};
-                mesh.vertices[i].color={1,1,1,1};
+                VertexAttrib v{};
+                v.pos={rect.points[i].x,rect.points[i].y};
+                v.uv={rect.points[i].x/988.0f,rect.points[i].y/852.0f};
+                v.color={1,1,1,1};
+                mesh.vertices.push_back(v);
             }
             mesh.indices=rect.indices;
-            ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,"img1-pass",
-                Material{{"img1-pipeline"},{255,255,255,255},"img1-tex"},
+            ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,
+                Material{"img1-pipeline",{255,255,255,255},"img1-tex"},
                 mesh});
         }
         {
@@ -121,7 +129,8 @@ public:
             Entity camera1=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,camera1, ecs::Enabled{true});
             ecs::setComponent<TransformComp>(this,camera1,TransformComp{});
-            ecs::setComponent<CameraComp>(this,camera1,{800,600});
+            ecs::setComponent<CameraComp>(this,camera1,{1200,1080});
+            ecs::setComponent<RotationFlag>(this,camera1,{40.0f});
             auto* renderContext=new RenderContext();
             auto config=ApplicationContext::getInstance().get<Config>("config");
             // auto* target=new ColorBuffer(config.LOGIC_WIDTH,config.LOGIC_HEIGHT);

@@ -4,6 +4,7 @@
 
 #ifndef GAMEENGINEQ_SOFTRENDERER_H
 #define GAMEENGINEQ_SOFTRENDERER_H
+#include <iostream>
 #include <string>
 
 #include "glm/glm.hpp"
@@ -12,29 +13,35 @@
 #include "SDL3/SDL_video.h"
 
 
-
 class ColorBuffer{
 public:
     std::vector<glm::vec4>data;
     int width,height;
     ColorBuffer(int w,int h):width(w),height(h),data(w*h){}
     ColorBuffer(SDL_Surface* surface):width(surface->w),height(surface->h),data(surface->w*surface->h){
-        uint8_t* pixels=(uint8_t*)surface->pixels;
-        for (int i=0;i<surface->w;i++) {
-            for (int j=0;j<surface->h;j++) {
-                uint8_t* pixel=pixels+j*surface->pitch+i*4;
-                at(i,j)[0]=pixel[0]/255.0f;
-                at(i,j)[1]=pixel[1]/255.0f;
-                at(i,j)[2]=pixel[2]/255.0f;
-                at(i,j)[3]=pixel[3]/255.0f;
+        // SDL_LockSurface(surface);
+        uint8_t r,g,b,a;
+        for (int j=0;j<surface->h;j++){
+            uint8_t* row = static_cast<uint8_t*>(surface->pixels) + j * surface->pitch;
+            for (int i=0;i<surface->w;i++){
+                uint32_t pixel = *reinterpret_cast<uint32_t*>(row + i*4);
+                SDL_GetRGBA(pixel, SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_RGBA8888),NULL, &r, &g, &b, &a);
+                glm::vec4 color = {
+                    r / 255.0f,
+                    g / 255.0f,
+                    b / 255.0f,
+                    a / 255.0f
+                };
+                set(i, j, color);
             }
         }
+        // SDL_UnlockSurface(surface);
     }
     [[nodiscard]] glm::vec4 at(int x,int y) const{
         return data[y*width+x];
     }
-    std::vector<glm::vec4> copyData() {
-        return data;
+    void set(int x,int y,glm::vec4 color) {
+        data[y*width+x]=color;
     }
     void clear(const glm::vec4 color={0,0,0,1}) {
         std::fill(data.begin(),data.end(),color);
@@ -44,25 +51,54 @@ public:
         auto pixels=static_cast<uint8_t *>(surface->pixels);
         for (int i=0;i<width;i++) {
             for (int j=0;j<height;j++) {
-                //RGBA8888格式的布局
-                pixels[j*width*4+i*4+0]=static_cast<uint8_t>(at(i, j).r)*255.0f;
-                pixels[j*width*4+i*4+1]=static_cast<uint8_t>(at(i, j).g)*255.0f;
-                pixels[j*width*4+i*4+2]=static_cast<uint8_t>(at(i, j).b)*255.0f;
-                pixels[j*width*4+i*4+3]=255;//舍弃透明度，不舍则static_cast<uint8_t>(at(i, j).a)*255.0f;
+                glm::vec4 c = at(i,j);
+                uint8_t rr = static_cast<uint8_t>(std::clamp(c.r,0.0f,1.0f) * 255.0f);
+                uint8_t gg = static_cast<uint8_t>(std::clamp(c.g,0.0f,1.0f) * 255.0f);
+                uint8_t bb = static_cast<uint8_t>(std::clamp(c.b,0.0f,1.0f) * 255.0f);
+                uint8_t aa = static_cast<uint8_t>(std::clamp(c.a,0.0f,1.0f) * 255.0f);
+                uint32_t px = SDL_MapSurfaceRGBA(surface, rr, gg, bb, aa);
+                uint8_t* row = static_cast<uint8_t*>(surface->pixels) + j * surface->pitch;
+                *reinterpret_cast<uint32_t*>(row + i*4) = px;
             }
         }
         return surface;
     }
 };
+
+//软渲染器暂时先把类型写死方便debug
+struct Uniform {//一次绘制中全局不变的数据
+    glm::mat3 mvpMatrix;//需要投影到ndc坐标
+    ColorBuffer* texture;
+    // 其他全局数据，比如时间、透明度、混合颜色、光照、高度图等也可以放这里
+    ~Uniform() {
+        delete texture;
+    }
+};
+
+struct VertexAttrib {//每个顶点各自的数据
+    glm::vec2 pos;// ndc
+    glm::vec2 uv;
+    glm::vec4 color;
+};
+struct VertexShaderOutput {
+    glm::vec2 pos;
+    glm::vec2 uv;
+    glm::vec4 color;
+};
+struct FragmentAttrib {
+    glm::vec2 viewPos;
+    glm::vec4 color;
+    glm::vec2 uv;
+};
 class IPipeline {
 protected:
     virtual ~IPipeline() = default;
-    virtual void* vertexShader(void* in, const void *uniform)=0;
-    virtual glm::vec4 fragmentShader(void* in, const void *uniform)=0;
+    virtual VertexShaderOutput* vertexShader(const VertexAttrib* in, const Uniform* uniform)=0;
+    virtual glm::vec4 fragmentShader(const FragmentAttrib* in, const Uniform* uniform)=0;
 public:
 //三角形相互独立，索引需要有序，底部先画的在前面
-    void run(const std::vector<void*> &verts, const std::vector<glm::ivec3> &indices,
-             const void *uniform, ::ColorBuffer *target);
+    void run(const std::vector<VertexAttrib> &verts, const std::vector<glm::ivec3> &indices,
+             const Uniform *uniform, ColorBuffer *target);
 };
 class RenderPass {
 public:
@@ -89,12 +125,12 @@ public:
     ColorBuffer* swapchain_texture;
     std::unordered_map<std::string,ColorBuffer*> render_targets;
     std::unordered_map<std::string,IPipeline*> pipelines;
-    std::vector<void*> vert_buffer;
+    std::vector<VertexAttrib> vert_buffer;
     std::vector<glm::ivec3> index_buffer;
     RenderPass cur_renderpass;
     //每个drawcall即每个物体的uniform都不同，即使是类型不同
     //uniform的具体类型或者说数据布局只有着色器内部知道
-    void drawcall(unsigned long long triangle_offset, unsigned long long triangle_count, unsigned long long vert_offset, void *uniform);
+    void drawcall(unsigned long long triangle_offset, unsigned long long triangle_count, unsigned long long vert_offset, const Uniform *uniform);
     void present();
 };
 

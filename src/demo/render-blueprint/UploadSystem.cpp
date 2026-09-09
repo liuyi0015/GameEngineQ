@@ -26,7 +26,7 @@ void UploadSystem::draw() {
                 drawableFlag.material.color.b/255.0f,
                 drawableFlag.material.color.a/255.0f,
             };;
-            auto v=new VertexAttrib {drawableFlag.mesh.vertices[i].pos,drawableFlag.mesh.vertices[i].uv,fcolor};
+            VertexAttrib v {drawableFlag.mesh.vertices[i].pos,drawableFlag.mesh.vertices[i].uv,fcolor};
             gpu->vert_buffer.push_back(v);
         }
         //上传索引
@@ -39,21 +39,21 @@ void UploadSystem::draw() {
     }
     //合成器顶点：屏幕矩形
     renderContext->composeVertStart= gpu->vert_buffer.size();
-    auto vert0=new VertexAttrib();
-    vert0->pos={-1,1};
-    vert0->uv={0,0};
+    VertexAttrib vert0={};
+    vert0.pos={-1,1};
+    vert0.uv={0,0};
     gpu->vert_buffer.push_back(vert0);
-    auto vert1=new VertexAttrib();
-    vert0->pos={1,1};
-    vert0->uv={1,0};
+    VertexAttrib vert1={};
+    vert1.pos={1,1};
+    vert1.uv={1,0};
     gpu->vert_buffer.push_back(vert1);
-    auto vert2=new VertexAttrib();
-    vert0->pos={1,-1};
-    vert0->uv={1,1};
+    VertexAttrib vert2={};
+    vert2.pos={1,-1};
+    vert2.uv={1,1};
     gpu->vert_buffer.push_back(vert2);
-    auto vert3=new VertexAttrib();
-    vert0->pos={-1,-1};
-    vert0->uv={0,1};
+    VertexAttrib vert3={};
+    vert3.pos={-1,-1};
+    vert3.uv={0,1};
     gpu->vert_buffer.push_back(vert3);
     renderContext->composeIndexStart= gpu->index_buffer.size();
     auto index0=glm::ivec3(0,1,2);

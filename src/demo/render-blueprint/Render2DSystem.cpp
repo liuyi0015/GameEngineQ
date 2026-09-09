@@ -72,6 +72,7 @@ void Render2DSystem::draw() {
 
     const RenderPass render_pass{"default_pipeline","2dtarget"};
     gpu->cur_renderpass=render_pass;
+    target->clear({1,0,0,1});//黑屏时调成红色用来debug
     //顶点分组
     for (int i=0;i<drawableEntities.size();i++) {
         Entity entity=drawableEntities[i].second;
@@ -81,5 +82,6 @@ void Render2DSystem::draw() {
         auto indexCount=renderContext->indexCounts[entity];
         auto vertStart=renderContext->vertStarts[entity];
         gpu->drawcall(indexStart,indexCount,vertStart,uniform);
+        delete uniform;
     }
 }

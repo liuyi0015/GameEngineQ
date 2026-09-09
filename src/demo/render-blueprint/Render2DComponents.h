@@ -23,7 +23,6 @@ struct Mesh {
 //绘制声明，和资源声明互不干扰
 struct Drawable2DFlag {
     int z_order = 0;
-    std::string renderpass_name;//target
     Material material;
     Mesh mesh;   // Position pivot{0,0};
 };
