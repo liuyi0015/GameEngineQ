@@ -19,7 +19,8 @@ void Render2DSystem::start() {
     //就用默认的
     auto pipeline=new DefaultPipeline();
     gpu->pipelines["default_pipeline"]=pipeline;
-    gpu->render_targets["2dtarget"]=target;
+    //让其他类也可以通过名字访问target
+    gpu->render_targets[this->targetName]=target;
 }
 
 static glm::mat3 getViewMatrix(const Transform &cameraTransform) {
@@ -70,9 +71,9 @@ void Render2DSystem::draw() {
     std::stable_sort(drawableEntities.begin(), drawableEntities.end(),
                      [](const auto &a, const auto &b){ return a.first < b.first; });
 
-    const RenderPass render_pass{"default_pipeline","2dtarget"};
+    const RenderPass render_pass{"default_pipeline",target};
     gpu->cur_renderpass=render_pass;
-    target->clear({1,0,0,1});//黑屏时调成红色用来debug
+    target->clear({0,0,0,1});//黑屏时调成红色用来debug
     //顶点分组
     for (int i=0;i<drawableEntities.size();i++) {
         Entity entity=drawableEntities[i].second;

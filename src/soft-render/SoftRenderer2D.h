@@ -38,6 +38,11 @@ public:
         // SDL_UnlockSurface(surface);
     }
     [[nodiscard]] glm::vec4 at(int x,int y) const{
+        //随便处理一下边界
+        if (x>=width) x=width-1;
+        if (y>=height) y=height-1;
+        if (x<0) x=0;
+        if (y<0) y=0;
         return data[y*width+x];
     }
     void set(int x,int y,glm::vec4 color) {
@@ -48,7 +53,6 @@ public:
     }
     [[nodiscard]] SDL_Surface* toSurface() const {
         SDL_Surface* surface = SDL_CreateSurface(width,height,SDL_PIXELFORMAT_RGBA8888);
-        auto pixels=static_cast<uint8_t *>(surface->pixels);
         for (int i=0;i<width;i++) {
             for (int j=0;j<height;j++) {
                 glm::vec4 c = at(i,j);
@@ -69,9 +73,13 @@ public:
 struct Uniform {//一次绘制中全局不变的数据
     glm::mat3 mvpMatrix;//需要投影到ndc坐标
     ColorBuffer* texture;
+    std::vector<ColorBuffer*>textures;
     // 其他全局数据，比如时间、透明度、混合颜色、光照、高度图等也可以放这里
     ~Uniform() {
         delete texture;
+        for (auto* tb : textures) {
+            delete tb;
+        }
     }
 };
 
@@ -79,6 +87,7 @@ struct VertexAttrib {//每个顶点各自的数据
     glm::vec2 pos;// ndc
     glm::vec2 uv;
     glm::vec4 color;
+
 };
 struct VertexShaderOutput {
     glm::vec2 pos;
@@ -104,7 +113,7 @@ class RenderPass {
 public:
     //用字符串引用方便跨类
     std::string cur_pipeline_name;
-    std::string cur_target_name;
+    ColorBuffer* cur_target;
 };
 /**
  * 目前默认格式RGBA8888

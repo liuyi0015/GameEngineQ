@@ -13,9 +13,6 @@ protected:
     glm::vec4 fragmentShader(const FragmentAttrib* in, const Uniform* uniform) override;
 };
 
-struct ComposeUniform {
-    std::vector<ColorBuffer*>textures;
-};
 class ComposePipeline:public IPipeline {
 protected:
     VertexShaderOutput* vertexShader(const VertexAttrib* in, const Uniform* uniform) override;

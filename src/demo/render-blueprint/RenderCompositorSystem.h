@@ -23,7 +23,7 @@ public:
         target=gpu->swapchain_texture;
     }
 
-    std::vector<std::string> src_names;
+    std::vector<ColorBuffer*> srcs;
 
     void start() override;
     void update(double deltaTime) override{};

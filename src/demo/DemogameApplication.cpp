@@ -15,6 +15,7 @@
 #include "../core/ResourceManager.hpp"
 #include "render-blueprint/Render2DSystem.h"
 #include "render-blueprint/UploadSystem.h"
+#include "systems/CameraInputListenerSystem.h"
 
 // ecs::Scene *DemogameApplication::loadScene1() {
 //
@@ -70,23 +71,11 @@
 class Scene1:public ecs::Scene{
 public:
     Scene1() {
-        //
         // {
-        //
-        //     Entity img1=Prefabs::staticImage(scene);
+        //     //动画
         //     Entity anim1=Prefabs::anim1(scene,img1);
-        //     ecs::setComponent<RotationFlag>(scene, img1, RotationFlag{20});
-        //     auto* rotationSystem=new ChangeTransformSystem(scene);
-        //     ecs::addSystem(scene,rotationSystem,{});
         //     auto* animationSystem=new AnimationSystem(scene,renderer);
         //     ecs::addSystem(scene,animationSystem,{});
-        // }
-        // {
-        //
-
-        // ecs::setComponent<CameraInputListenerFlag>(scene, camera2, {});
-        // auto* cameraInputListenerSystem=new CameraInputListenerSystem(scene);
-        //     ecs::addSystem(scene,cameraInputListenerSystem,{});
         // }
         {
             //加载资源
@@ -111,13 +100,17 @@ public:
             ecs::setComponent<TransformComp>(this,img1_entity, TransformComp{});
             Geometry::Shape2D rect=Geometry::createRect({0,0},{988,852});
             Mesh mesh;
-            for (int i=0;i<rect.points.size();i++) {
+            for (auto & point : rect.points) {
                 VertexAttrib v{};
-                v.pos={rect.points[i].x,rect.points[i].y};
-                v.uv={rect.points[i].x/988.0f,rect.points[i].y/852.0f};
+                v.pos={point.x,point.y};
                 v.color={1,1,1,1};
                 mesh.vertices.push_back(v);
             }
+            //注意是先横坐标x后纵坐标y
+            mesh.vertices[0].uv={0,0};//左上
+            mesh.vertices[1].uv={1,0};//右上
+            mesh.vertices[2].uv={1,1};//右下
+            mesh.vertices[3].uv={0,1};//左下
             mesh.indices=rect.indices;
             ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,
                 Material{"img1-pipeline",{255,255,255,255},"img1-tex"},
@@ -130,16 +123,22 @@ public:
             ecs::setComponent<ecs::Enabled>(this,camera1, ecs::Enabled{true});
             ecs::setComponent<TransformComp>(this,camera1,TransformComp{});
             ecs::setComponent<CameraComp>(this,camera1,{1200,1080});
-            ecs::setComponent<RotationFlag>(this,camera1,{40.0f});
+            // ecs::setComponent<RotationFlag>(this,camera1,{40.0f});
             auto* renderContext=new RenderContext();
             auto config=ApplicationContext::getInstance().get<Config>("config");
-            // auto* target=new ColorBuffer(config.LOGIC_WIDTH,config.LOGIC_HEIGHT);
-            auto* gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
-            auto* target=gpu->swapchain_texture;
+            auto* target=new ColorBuffer(config.LOGIC_WIDTH,config.LOGIC_HEIGHT);
+            // auto* gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
+            // auto* target=gpu->swapchain_texture;
             auto* uploadSystem=new UploadSystem(this,renderContext);
-            auto* render2dSystem=new Render2DSystem(this,target,camera1,renderContext);
             ecs::addSystem(this,uploadSystem,{0,0,0,1});
+            auto* render2dSystem=new Render2DSystem(this,target,camera1,renderContext,"2dtarget");
             ecs::addSystem(this,render2dSystem,{0,0,0,2});
+            auto* renderCompositorSystem=new RenderCompositorSystem(this,renderContext);
+            renderCompositorSystem->srcs.push_back(render2dSystem->target);
+            ecs::addSystem(this,renderCompositorSystem,{0,0,0,3});
+            // ecs::setComponent<CameraInputListenerFlag>(this, camera1, {});
+            // auto* cameraInputListenerSystem=new CameraInputListenerSystem(this);
+            // ecs::addSystem(this,cameraInputListenerSystem,{});
 
             //todo 小屏幕渲染目标(不给compositor)
         }

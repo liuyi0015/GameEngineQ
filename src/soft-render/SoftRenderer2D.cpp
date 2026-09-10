@@ -23,23 +23,23 @@ void IPipeline::run(const std::vector<VertexAttrib> &verts, const std::vector<gl
         auto vert_out0=*vert_outs[indices[k][0]];
         auto vert_out1=*vert_outs[indices[k][1]];
         auto vert_out2=*vert_outs[indices[k][2]];
-        //顶点视口变换
-        glm::vec2 t0={(vert_out0.pos.x/2.0+0.5)*target->width,(vert_out0.pos.y/2.0+0.5)*target->height};
-        glm::vec2 t1={(vert_out1.pos.x/2.0+0.5)*target->width,(vert_out1.pos.y/2.0+0.5)*target->height};
-        glm::vec2 t2={(vert_out2.pos.x/2.0+0.5)*target->width,(vert_out2.pos.y/2.0+0.5)*target->height};
+        //顶点视口变换，除了缩放，还要转换为屏幕坐标系
+        glm::vec2 t0={(vert_out0.pos.x/2.0+0.5)*target->width,(0.5-vert_out0.pos.y/2.0)*target->height};
+        glm::vec2 t1={(vert_out1.pos.x/2.0+0.5)*target->width,(0.5-vert_out1.pos.y/2.0)*target->height};
+        glm::vec2 t2={(vert_out2.pos.x/2.0+0.5)*target->width,(0.5-vert_out2.pos.y/2.0)*target->height};
         Geometry::PointTriangle2D triangle{t0,t1,t2};
-        //先宽后高
+
         for (int i=0;i<target->width;i++) {
             for (int j=0;j<target->height;j++) {
                 //坐标统统加0.5，才是像素中心
-                glm::vec2 pos={i+0.5,j+0.5};
-                if (triangle.contains(pos) ){
+                glm::vec2 screenPos={i+0.5,j+0.5};
+                if (triangle.contains(screenPos) ){
                     FragmentAttrib frag{};
-                    frag.viewPos=pos;
+                    frag.viewPos=screenPos;
                     //面积比表示重心坐标
-                    Geometry::PointTriangle2D triangle0{pos,t0,t1};
-                    Geometry::PointTriangle2D triangle1{pos,t1,t2};
-                    Geometry::PointTriangle2D triangle2{pos,t2,t0};
+                    Geometry::PointTriangle2D triangle0{screenPos,t0,t1};
+                    Geometry::PointTriangle2D triangle1{screenPos,t1,t2};
+                    Geometry::PointTriangle2D triangle2{screenPos,t2,t0};
                     //颜色插值
                     float r0=vert_out0.color.r;
                     float r1=vert_out1.color.r;
@@ -81,9 +81,8 @@ void SoftGPU::drawcall( unsigned long long triangle_offset, unsigned long long t
         glm::ivec3 triangle={index_buffer[i].x+vert_offset,index_buffer[i].y+vert_offset,index_buffer[i].z+vert_offset};
         triangles.push_back(triangle);
     }
-    ColorBuffer* curTarget=render_targets[cur_renderpass.cur_target_name];
     IPipeline* pipeline=pipelines[cur_renderpass.cur_pipeline_name];
-    pipeline->run(vert_buffer,triangles,uniform,curTarget);
+    pipeline->run(vert_buffer,triangles,uniform,cur_renderpass.cur_target);
     // triangle_offset+=triangle_count;
 }
 

@@ -37,8 +37,7 @@ namespace Geometry {
         }
         //面积
         [[nodiscard]] float area()const {
-            // std::cout<<"area()"<<std::abs(p1.x*(p2.y-p3.y)+p2.x*(p3.y-p1.y)+p3.x*(p1.y-p2.y)/2.0f)<<std::endl;
-            return std::abs(p1.x*(p2.y-p3.y)+p2.x*(p3.y-p1.y)+p3.x*(p1.y-p2.y)/2.0f);
+            return std::abs((p1.x*(p2.y-p3.y)+p2.x*(p3.y-p1.y)+p3.x*(p1.y-p2.y))/2.0f);
         }
     };
     struct Shape2D {

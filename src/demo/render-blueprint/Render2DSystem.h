@@ -4,6 +4,8 @@
 
 #ifndef GAMEENGINE_RENDERSYSTEM_H
 #define GAMEENGINE_RENDERSYSTEM_H
+#include <utility>
+
 #include "../../soft-render/SoftRenderer2D.h"
 #include "../../core/Context.hpp"
 #include "../../core/ecs/BaseComponents.h"
@@ -15,11 +17,12 @@ class Render2DSystem: public ecs::System {
 private:
     SoftGPU *gpu;
     RenderContext* renderContext;
-    ColorBuffer* target;
     Entity camera;
 public:
-    explicit Render2DSystem(ecs::Scene* scene,ColorBuffer* target,Entity camera,RenderContext* renderContext)
-        : System(scene),target(target),camera(camera),renderContext(renderContext){
+    std::string targetName;
+    ColorBuffer* target;
+    explicit Render2DSystem(ecs::Scene* scene,ColorBuffer* target,Entity camera,RenderContext* renderContext,std::string  targetName)
+        : System(scene),target(target),camera(camera),renderContext(renderContext),targetName(std::move(targetName)){
         this->gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
     }
     void start() override;

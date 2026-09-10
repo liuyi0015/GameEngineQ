@@ -14,10 +14,10 @@ Shape2D createRect(glm::vec2 center, glm::vec2 size) {
     glm::vec2 rightUp = {center.x + size.x / 2.0f, center.y + size.y / 2.0f};
     glm::vec2 rightDown = {center.x + size.x / 2.0f, center.y - size.y / 2.0f};
 
-    shape.points.push_back(leftDown);   // 0
-    shape.points.push_back(leftUp);     // 1
-    shape.points.push_back(rightUp);    // 2
-    shape.points.push_back(rightDown);  // 3
+    shape.points.push_back(leftUp);     // 0
+    shape.points.push_back(rightUp);    // 1
+    shape.points.push_back(rightDown);  // 2
+    shape.points.push_back(leftDown);   // 3
     //顺时针
     shape.indices.push_back({0, 1, 2});
     shape.indices.push_back({0, 2, 3});
