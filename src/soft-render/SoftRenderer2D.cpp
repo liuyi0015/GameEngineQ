@@ -18,7 +18,7 @@ void IPipeline::run(const std::vector<VertexAttrib> &verts, const std::vector<gl
         vert_outs[i] = vertexShader(&verts[i],uniform);
     }
     //光栅化，透明度还要留着，合成最终纹理之后才能丢
-    //渲染管线可能在中途工作，不能清空渲染目标
+    //渲染管线可能在绘制中途工作，不能清空渲染目标
     for (int k=0;k<indices.size();k++) {
         auto vert_out0=*vert_outs[indices[k][0]];
         auto vert_out1=*vert_outs[indices[k][1]];
@@ -36,41 +36,31 @@ void IPipeline::run(const std::vector<VertexAttrib> &verts, const std::vector<gl
                 if (triangle.contains(screenPos) ){
                     FragmentAttrib frag{};
                     frag.viewPos=screenPos;
-                    //面积比表示重心坐标
-                    Geometry::PointTriangle2D triangle0{screenPos,t0,t1};
-                    Geometry::PointTriangle2D triangle1{screenPos,t1,t2};
-                    Geometry::PointTriangle2D triangle2{screenPos,t2,t0};
-                    //颜色插值
-                    float r0=vert_out0.color.r;
-                    float r1=vert_out1.color.r;
-                    float r2=vert_out2.color.r;
-                    frag.color.r=(r0*triangle0.area()+r1*triangle1.area()+r2*triangle2.area())/triangle.area();
-                    float g0=vert_out0.color.g;
-                    float g1=vert_out1.color.g;
-                    float g2=vert_out2.color.g;
-                    frag.color.g=(g0*triangle0.area()+g1*triangle1.area()+g2*triangle2.area())/triangle.area();
-                    float b0=vert_out0.color.b;
-                    float b1=vert_out1.color.b;
-                    float b2=vert_out2.color.b;
-                    frag.color.b=(b0*triangle0.area()+b1*triangle1.area()+b2*triangle2.area())/triangle.area();
-                    float a0=vert_out0.color.a;
-                    float a1=vert_out1.color.a;
-                    float a2=vert_out2.color.a;
-                    frag.color.a=(a0*triangle0.area()+a1*triangle1.area()+a2*triangle2.area())/triangle.area();
-                    //uv插值
-                    float u0=vert_out0.uv.x;
-                    float u1=vert_out1.uv.x;
-                    float u2=vert_out2.uv.x;
-                    float v0=vert_out0.uv.y;
-                    float v1=vert_out1.uv.y;
-                    float v2=vert_out2.uv.y;
-                    frag.uv.x=(u0*triangle0.area()+u1*triangle1.area()+u2*triangle2.area())/triangle.area();
-                    frag.uv.y=(v0*triangle0.area()+v1*triangle1.area()+v2*triangle2.area())/triangle.area();
+                    auto orient = [](const glm::vec2& a, const glm::vec2& b, const glm::vec2& c) {
+                        return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+                    };
+
+                    auto barycentric = [&](const glm::vec2& p,
+                                           const glm::vec2& a,
+                                           const glm::vec2& b,
+                                           const glm::vec2& c) {
+                        float den = orient(a, b, c);
+                        if (std::abs(den) < 1e-6f) return glm::vec3(0.0f, 0.0f, 0.0f);
+                        float w0 = orient(b, c, p) / den;
+                        float w1 = orient(c, a, p) / den;
+                        float w2 = orient(a, b, p) / den;
+                        return glm::vec3(w0, w1, w2);
+                    };
+                    glm::vec3 w = barycentric(screenPos, t0, t1, t2);
+
+                    frag.uv = w.x * vert_out0.uv + w.y * vert_out1.uv + w.z * vert_out2.uv;
+                    frag.color = w.x * vert_out0.color + w.y * vert_out1.color + w.z * vert_out2.color;
                     target->set(i,j,fragmentShader(&frag,uniform));
                 }
             }
         }
     }
+    // target->testColorBuffer();
 }
 
 void SoftGPU::drawcall( unsigned long long triangle_offset, unsigned long long triangle_count,

@@ -152,18 +152,7 @@ static void testEvents() {
 		std::cout<<"函数外str是："<<param<<std::endl;
 	}
 }
-void testColorBuffer() {
-	SDL_Window* window=SDL_CreateWindow("ColorBuffer Test", 800, 600,0);
-	SDL_Renderer* renderer=SDL_CreateRenderer(window,"opengl");
-	auto* img0=IMG_Load("assets/1.png");
-	ColorBuffer* colorBuffer=new ColorBuffer(img0);
-	auto img1=colorBuffer->toSurface();
-	SDL_Texture* texture=SDL_CreateTextureFromSurface(renderer, img1);
-	SDL_RenderClear(renderer);
-	SDL_RenderTexture(renderer,texture,nullptr,nullptr);
-	SDL_RenderPresent(renderer);
-	while (true);
-}
+
 int main() {
 #if _WIN32
 	SetConsoleOutputCP(65001); // Set console to CP_UTF8

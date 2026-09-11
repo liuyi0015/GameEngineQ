@@ -71,17 +71,6 @@
 class Scene1:public ecs::Scene{
 public:
     Scene1() {
-        // {
-        //     //动画
-        //     Entity anim1=Prefabs::anim1(scene,img1);
-        //     auto* animationSystem=new AnimationSystem(scene,renderer);
-        //     ecs::addSystem(scene,animationSystem,{});
-        // }
-        {
-            //加载资源
-            auto* img1=IMG_Load("assets/1.png");
-            ResourceManager::getInstance().getSurfaceCache().set("img1-tex",img1);
-        }
         {
             //普通system
             auto* changeTransformSystem=new ChangeTransformSystem(this);
@@ -91,6 +80,17 @@ public:
             ecs::addSystem(this,print_system1,{10,0,0,0});
             auto* print_system2 = new PrintSystem(this,2);
             ecs::addSystem(this,print_system2,{});
+        }
+        {
+            //加载资源
+            auto* img1=IMG_Load("assets/1.png");
+            ResourceManager::getInstance().getSurfaceCache().set("img1-tex",img1);
+            //动画
+            auto anim1=IMG_LoadAnimation("assets/1.gif");
+            ResourceManager::getInstance().getAnimationCache().set("anim1",anim1);
+        }
+        {
+            //文字显示
         }
         {
             //image
@@ -115,6 +115,10 @@ public:
             ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,
                 Material{"img1-pipeline",{255,255,255,255},"img1-tex"},
                 mesh});
+            ecs::setComponent<FrameAnimatorFlag>(this,img1_entity,FrameAnimatorFlag{"anim1",true});
+
+            auto* animationSystem=new AnimationSystem(this);
+            ecs::addSystem(this,animationSystem,{});
         }
         {
             //render
@@ -123,7 +127,7 @@ public:
             ecs::setComponent<ecs::Enabled>(this,camera1, ecs::Enabled{true});
             ecs::setComponent<TransformComp>(this,camera1,TransformComp{});
             ecs::setComponent<CameraComp>(this,camera1,{1200,1080});
-            // ecs::setComponent<RotationFlag>(this,camera1,{40.0f});
+            ecs::setComponent<RotationFlag>(this,camera1,{40.0f});
             auto* renderContext=new RenderContext();
             auto config=ApplicationContext::getInstance().get<Config>("config");
             auto* target=new ColorBuffer(config.LOGIC_WIDTH,config.LOGIC_HEIGHT);
@@ -136,11 +140,12 @@ public:
             auto* renderCompositorSystem=new RenderCompositorSystem(this,renderContext);
             renderCompositorSystem->srcs.push_back(render2dSystem->target);
             ecs::addSystem(this,renderCompositorSystem,{0,0,0,3});
+
             // ecs::setComponent<CameraInputListenerFlag>(this, camera1, {});
             // auto* cameraInputListenerSystem=new CameraInputListenerSystem(this);
             // ecs::addSystem(this,cameraInputListenerSystem,{});
 
-            //todo 小屏幕渲染目标(不给compositor)
+            //todo 小屏幕渲染目标(而不给compositorPass)
         }
     }
     ~Scene1() {
@@ -150,7 +155,7 @@ public:
     }
 };
 void DemogameApplication::init() {
-    // TTF_Font* font1=TTF_OpenFont("assets/1.ttf", 24);
-    // ResourceManager::getInstance().getFontCache().set("font1", font1);
+    TTF_Font* font1=TTF_OpenFont("assets/1.ttf", 24);
+    ResourceManager::getInstance().getFontCache().set("font1", font1);
     scene=new Scene1();
 }

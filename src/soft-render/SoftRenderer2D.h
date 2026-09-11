@@ -9,6 +9,7 @@
 
 #include "glm/glm.hpp"
 #include "glm/detail/type_vec3.hpp"
+#include "SDL3/SDL_render.h"
 #include "SDL3/SDL_surface.h"
 #include "SDL3/SDL_video.h"
 
@@ -18,14 +19,16 @@ public:
     std::vector<glm::vec4>data;
     int width,height;
     ColorBuffer(int w,int h):width(w),height(h),data(w*h){}
+    //surface格式可以随便，不一定raba8888，以便支持各种图片
     ColorBuffer(SDL_Surface* surface):width(surface->w),height(surface->h),data(surface->w*surface->h){
+        printf("surface format: %s\n", SDL_GetPixelFormatName(surface->format));
         // SDL_LockSurface(surface);
         uint8_t r,g,b,a;
         for (int j=0;j<surface->h;j++){
             uint8_t* row = static_cast<uint8_t*>(surface->pixels) + j * surface->pitch;
             for (int i=0;i<surface->w;i++){
                 uint32_t pixel = *reinterpret_cast<uint32_t*>(row + i*4);
-                SDL_GetRGBA(pixel, SDL_GetPixelFormatDetails(SDL_PIXELFORMAT_RGBA8888),NULL, &r, &g, &b, &a);
+                SDL_GetRGBA(pixel, SDL_GetPixelFormatDetails(surface->format),NULL, &r, &g, &b, &a);
                 glm::vec4 color = {
                     r / 255.0f,
                     g / 255.0f,
@@ -51,8 +54,8 @@ public:
     void clear(const glm::vec4 color={0,0,0,1}) {
         std::fill(data.begin(),data.end(),color);
     }
-    [[nodiscard]] SDL_Surface* toSurface() const {
-        SDL_Surface* surface = SDL_CreateSurface(width,height,SDL_PIXELFORMAT_RGBA8888);
+    [[nodiscard]] SDL_Surface* toSurface(SDL_PixelFormat format=SDL_PIXELFORMAT_RGBA8888) const {
+        SDL_Surface* surface = SDL_CreateSurface(width,height,format);
         for (int i=0;i<width;i++) {
             for (int j=0;j<height;j++) {
                 glm::vec4 c = at(i,j);
@@ -66,6 +69,16 @@ public:
             }
         }
         return surface;
+    }
+    void testColorBuffer() {
+        SDL_Window* window=SDL_CreateWindow("ColorBuffer Test", 800, 600,0);
+        SDL_Renderer* renderer=SDL_CreateRenderer(window,"opengl");
+        auto img1=this->toSurface();
+        SDL_Texture* texture=SDL_CreateTextureFromSurface(renderer, img1);
+        SDL_RenderClear(renderer);
+        SDL_RenderTexture(renderer,texture,nullptr,nullptr);
+        SDL_RenderPresent(renderer);
+        // while (true);
     }
 };
 
