@@ -28,6 +28,7 @@ namespace Geometry {
         glm::vec2 p1,p2,p3;
         bool contains(const glm::vec2& p)const {
             auto sign = [](const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3){
+                //叉积
                 return (p1.x - p3.x)*(p2.y - p3.y) - (p2.x - p3.x)*(p1.y - p3.y);
             };
             bool b1 = sign(p,p1,p2) < 0.0f;

@@ -32,6 +32,7 @@ void UploadSystem::draw() {
     //合成器顶点：屏幕矩形
     renderContext->composeVertStart= gpu->vert_buffer.size();
     VertexAttrib vert0={};
+    //直接填ndc坐标，也是先x后y
     vert0.pos={-1,1};//左上
     vert0.uv={0,0};
     gpu->vert_buffer.push_back(vert0);

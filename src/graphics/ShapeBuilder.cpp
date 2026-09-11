@@ -19,8 +19,8 @@ Shape2D createRect(glm::vec2 center, glm::vec2 size) {
     shape.points.push_back(rightDown);  // 2
     shape.points.push_back(leftDown);   // 3
     //顺时针
-    shape.indices.push_back({0, 1, 2});
-    shape.indices.push_back({0, 2, 3});
+    shape.indices.push_back({0, 1, 2});//直角右上
+    shape.indices.push_back({0, 2, 3});//直角左下
 
     return shape;
 }

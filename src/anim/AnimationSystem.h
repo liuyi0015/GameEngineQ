@@ -11,11 +11,8 @@
 
 class AnimationSystem:public ecs::MonoBehaviourSystem<FrameAnimatorFlag>{
 protected:
-    SDL_Renderer *renderer;
 public:
-    explicit AnimationSystem(ecs::Scene* scene,SDL_Renderer* renderer)
-        : ecs::MonoBehaviourSystem<FrameAnimatorFlag>(scene) , renderer(renderer){
-    }
+    explicit AnimationSystem(ecs::Scene* scene);
 
     ~AnimationSystem();
 

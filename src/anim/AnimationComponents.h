@@ -9,8 +9,7 @@
 #include "SDL3_image/SDL_image.h"
 #include <vector>
 struct FrameAnimatorFlag {
-    std::string name;
-    std::string path;
+    std::string animId;
     bool loop;
     int counter=0;
     double timer=0;
