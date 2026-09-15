@@ -7,12 +7,11 @@
 #include <cassert>
 
 #include "PhysicsComponents.h"
-#include "../../core/Context.hpp"
 #include "box2d/box2d.h"
-#include "../../core/ecs/BaseComponents.h"
-#include "../../Config.h"
-#include "../../core/transform/transform2d/Transform2dComponents.h"
-#include "../../core/ecs/Util.h"
+#include "../../../core/ecs/BaseComponents.h"
+#include "../../../Config.h"
+#include "../../transform2d/Transform2dComponents.h"
+#include "../../../core/ecs/Util.h"
 
 Physics2DSystem::~Physics2DSystem() {
     if (b2World_IsValid(worldId)) {
@@ -32,7 +31,7 @@ void Physics2DSystem::start() {
         if (!enabledComp.has_value()||!enabledComp.value().value || !rigidBodyComp.has_value()) {
             continue;
         }
-        auto transformComp = ecs::getComponent<TransformComp>(scene,entity);
+        auto transformComp = ecs::getComponent<Transform2DComp>(scene,entity);
         assert(transformComp.has_value());
         b2BodyDef bodyDef=b2DefaultBodyDef();
         bodyDef.type=rigidBodyComp.value().type;
@@ -61,12 +60,12 @@ void Physics2DSystem::fixed_update(double deltaTime) {
         b2Vec2 position = b2Body_GetPosition(bodyId);
         // std::cout<<ecs::getComponent<ecs::Name>(scene,entity).value().value<<"的物理坐标"<<position.x<<" "<<position.y<<std::endl;
         b2Rot rotation = b2Body_GetRotation(bodyId);
-        auto transformComp = ecs::getComponent<TransformComp>(scene,entity);
+        auto transformComp = ecs::getComponent<Transform2DComp>(scene,entity);
         assert(transformComp.has_value()) ;
         //屏幕坐标的y轴相反
         transformComp.value().transform.position = {position.x, -position.y};
-        transformComp.value().transform.rotation.angle = atan2f(rotation.s, rotation.c);
-        ecs::setComponent<TransformComp>(scene,entity, transformComp.value());
+        transformComp.value().transform.rotation = atan2f(rotation.s, rotation.c);
+        ecs::setComponent<Transform2DComp>(scene,entity, transformComp.value());
     }
 }
 

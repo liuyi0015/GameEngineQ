@@ -7,7 +7,7 @@
 #include <cassert>
 
 #include "../core/ResourceManager.hpp"
-#include "../demo/render-blueprint/Render2DComponents.h"
+#include "../transform/render-blueprint/Render2DComponents.h"
 #include "SDL3_image/SDL_image.h"
 
 AnimationSystem::AnimationSystem(ecs::Scene *scene)

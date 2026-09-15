@@ -4,21 +4,21 @@
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include "core/AudioPlayer.h"
-#include "core/EcsApplication.h"
+#include "core/Application.h"
 #include "Config.h"
 #include "core/ResourceManager.hpp"
 #include "SDL3_image/SDL_image.h"
 
 // #include "DemoGame3d/DemoGameApplication.h"
 #include "demo/DemogameApplication.h"
-#include "soft-render/SoftRenderer2D.h"
+#include "soft-render/GpuSimulator.h"
 
 #if _WIN32
 	#include <windows.h>
 #endif
 static void init() {
 	Config config=Config();
-	ApplicationContext::getInstance().set("config",config);
+	ApplicationContext::getInstance().set<Config>("config",config);
 	//初始化SDL，没有的额外参数，用到会自动初始化
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS|SDL_INIT_AUDIO);
 	AudioPlayer::init();
@@ -34,22 +34,22 @@ static void init() {
 	ApplicationContext::getInstance().set("window", window);
 	ApplicationContext::getInstance().set<SoftGPU*>("mygpu",mygpu);
 	auto* app=new DemogameApplication();//可替换
-	ApplicationContext::getInstance().set<EcsApplication*>("app", app);
+	ApplicationContext::getInstance().set<Application*>("app", app);
 	app->init();
 	std::cout<<"init success"<<std::endl;
 }
 static void start() {
 	// AudioPlayer::loadAndPlay("assets/2.mp3");
-	ApplicationContext::getInstance().get<EcsApplication*>("app")->start();
+	ApplicationContext::getInstance().get<Application*>("app")->start();
 }
 static void update(double deltaTime) {
-	ApplicationContext::getInstance().get<EcsApplication*>("app")->update(deltaTime);
+	ApplicationContext::getInstance().get<Application*>("app")->update(deltaTime);
 }
 static void fixed_update(double deltaTime) {
-	ApplicationContext::getInstance().get<EcsApplication*>("app")->fixed_update(deltaTime);
+	ApplicationContext::getInstance().get<Application*>("app")->fixed_update(deltaTime);
 }
 static void draw() {
-	ApplicationContext::getInstance().get<EcsApplication*>("app")->draw();
+	ApplicationContext::getInstance().get<Application*>("app")->draw();
 }
 bool handleEvents() {
 	SDL_Event event;
@@ -57,6 +57,12 @@ bool handleEvents() {
 	while (SDL_PollEvent(&event)) {
 		if (event.type==SDL_EVENT_QUIT) {
 			return false;
+		}
+		if (event.type==SDL_EVENT_WINDOW_RESIZED) {
+			auto config=ApplicationContext::getInstance().get<Config>("config");
+			auto* window=ApplicationContext::getInstance().get<SDL_Window*>("window");
+			SDL_GetWindowSize(window,&config.WINDOW_WIDTH,&config.WINDOW_HEIGHT);
+			ApplicationContext::getInstance().set<Config>("config",config);
 		}
 		if (event.type==SDL_EVENT_MOUSE_BUTTON_DOWN) {
 			EventBus::getInstance().publish("input mouse button",event.button);
@@ -78,7 +84,6 @@ bool handleEvents() {
 
 static int main_loop() {
 	start();
-	auto* mygpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
 	// FPS计数相关（使用 SDL_GetTicks 返回 Uint32）
 	Uint32 fpsLastTick = SDL_GetTicks(); // 毫秒
 	int frameCount =0;
@@ -115,8 +120,6 @@ static int main_loop() {
             frameCount = 0;
             fpsLastTick = now;
         }
-    	//提交渲染
-    	mygpu->present();
     	if (!handleEvents()) break;
 	}
 	SDL_Quit();

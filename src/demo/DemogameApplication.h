@@ -4,9 +4,9 @@
 
 #ifndef GAMEENGINE_DEMOGAMEAPPLICATION_H
 #define GAMEENGINE_DEMOGAMEAPPLICATION_H
-#include "../core/EcsApplication.h"
+#include "../core/Application.h"
 
-class DemogameApplication:public EcsApplication{
+class DemogameApplication:public Application{
 private:
 public:
     void init() override;

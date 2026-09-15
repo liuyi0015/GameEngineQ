@@ -7,41 +7,41 @@
 #include <cassert>
 
 #include "../GameComponents.h"
-#include "../../core/transform/transform2d/Transform2dComponents.h"
+#include "../../transform/transform2d/Transform2dComponents.h"
 
 void ChangeTransformSystem::onFixedUpdate(double deltaTime) {
-    if (ecs::getComponent<TransformComp>(scene, curEntity).has_value() && ecs::getComponent<RotationFlag>(scene, curEntity).has_value()) {
+    if (ecs::getComponent<Transform2DComp>(scene, curEntity).has_value() && ecs::getComponent<RotationFlag>(scene, curEntity).has_value()) {
         rotate(deltaTime);
     }
-    if (ecs::getComponent<TransformComp>(scene, curEntity).has_value() && ecs::getComponent<ScalerFlag>(scene, curEntity).has_value()) {
+    if (ecs::getComponent<Transform2DComp>(scene, curEntity).has_value() && ecs::getComponent<ScalerFlag>(scene, curEntity).has_value()) {
         scale(deltaTime);
     }
-    if (ecs::getComponent<TransformComp>(scene, curEntity).has_value() && ecs::getComponent<MoveFlag>(scene, curEntity).has_value()) {
+    if (ecs::getComponent<Transform2DComp>(scene, curEntity).has_value() && ecs::getComponent<MoveFlag>(scene, curEntity).has_value()) {
         move(deltaTime);
     }
 }
 void ChangeTransformSystem::rotate(double deltaTime) {
-    auto transform = ecs::getComponent<TransformComp>(scene, curEntity).value();
+    auto transform = ecs::getComponent<Transform2DComp>(scene, curEntity).value();
     auto rotation=ecs::getComponent<RotationFlag>(scene, curEntity).value();
 
-    transform.transform.rotation.angle+= rotation.speed * static_cast<float>(deltaTime);
-    ecs::setComponent<TransformComp>(scene, curEntity,transform);
+    transform.transform.rotation+= rotation.speed * static_cast<float>(deltaTime);
+    ecs::setComponent<Transform2DComp>(scene, curEntity,transform);
 }
 
 void ChangeTransformSystem::scale(double deltaTime) {
-    auto transformComp = ecs::getComponent<TransformComp>(scene, curEntity);
+    auto transformComp = ecs::getComponent<Transform2DComp>(scene, curEntity);
     auto scalerComp=ecs::getComponent<ScalerFlag>(scene, curEntity);
     auto scale=transformComp.value().transform.scale;
     auto speed=scalerComp.value().speed;
     scale.x+= speed * static_cast<float>(deltaTime);
     scale.y+= speed * static_cast<float>(deltaTime);
-    ecs::setComponent<TransformComp>(scene, curEntity,transformComp.value());
+    ecs::setComponent<Transform2DComp>(scene, curEntity,transformComp.value());
 }
 void ChangeTransformSystem::move(double deltaTime) {
 
     auto moveFlagComp=ecs::getComponent<MoveFlag>(scene, curEntity);
-    auto transformComp = ecs::getComponent<TransformComp>(scene, curEntity);
-    Position& pos = transformComp.value().transform.position;
+    auto transformComp = ecs::getComponent<Transform2DComp>(scene, curEntity);
+    glm::vec2& pos = transformComp.value().transform.position;
 
     switch (moveFlagComp.value().currentEdge) {
         case 0:
@@ -74,6 +74,6 @@ void ChangeTransformSystem::move(double deltaTime) {
             break;
         default: ;
     }
-    ecs::setComponent<TransformComp>(scene, curEntity, transformComp.value());
+    ecs::setComponent<Transform2DComp>(scene, curEntity, transformComp.value());
     ecs::setComponent<MoveFlag>(scene, curEntity, moveFlagComp.value());
 }

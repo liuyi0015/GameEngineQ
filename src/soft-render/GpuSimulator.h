@@ -4,6 +4,8 @@
 
 #ifndef GAMEENGINEQ_SOFTRENDERER_H
 #define GAMEENGINEQ_SOFTRENDERER_H
+#include <algorithm>
+#include <any>
 #include <iostream>
 #include <string>
 
@@ -84,53 +86,49 @@ public:
 
 //软渲染器暂时先把类型写死方便debug
 struct Uniform {//一次绘制中全局不变的数据
-    glm::mat3 mvpMatrix;//需要投影到ndc坐标
-    ColorBuffer* texture;
-    std::vector<ColorBuffer*>textures;
-    // 其他全局数据，比如时间、透明度、混合颜色、光照、高度图等也可以放这里
-    ~Uniform() {
-        delete texture;
-        for (auto* tb : textures) {
-            delete tb;
-        }
-    }
-};
-
-struct VertexAttrib {//每个顶点各自的数据
-    glm::vec2 pos;// ndc
-    glm::vec2 uv;
-    glm::vec4 color;
 
 };
+
 struct VertexShaderOutput {
-    glm::vec2 pos;
+    glm::vec4 pos;//x,y,深度,插值后像素的1/w
     glm::vec2 uv;
     glm::vec4 color;
 };
 struct FragmentAttrib {
-    glm::vec2 viewPos;
+    glm::vec4 viewPos;
     glm::vec4 color;
     glm::vec2 uv;
 };
+
 class IPipeline {
 protected:
     virtual ~IPipeline() = default;
-    virtual VertexShaderOutput* vertexShader(const VertexAttrib* in, const Uniform* uniform)=0;
+    virtual VertexShaderOutput* vertexShader(const std::any& in, const Uniform* uniform)=0;
     virtual glm::vec4 fragmentShader(const FragmentAttrib* in, const Uniform* uniform)=0;
 public:
 //三角形相互独立，索引需要有序，底部先画的在前面
-    void run(const std::vector<VertexAttrib> &verts, const std::vector<glm::ivec3> &indices,
+    void run(const std::vector<std::any> &verts, const std::vector<glm::ivec3> &indices,
              const Uniform *uniform, ColorBuffer *target);
 };
-class RenderPass {
+struct VertexBuffer{
+    std::vector<std::any> vertices;
+};
+struct IndiceBuffer {
+    std::vector<glm::ivec3> indices;
+};
+struct UniformBuffer {
+    std::vector<Uniform*> uniforms;
+};
+struct  RenderPass {
 public:
-    //用字符串引用方便跨类
-    std::string cur_pipeline_name;
-    ColorBuffer* cur_target;
+    ColorBuffer* const cur_target;
+    IPipeline* cur_pipeline=nullptr;
+    unsigned long long vert_buffer_offset=0;
+    unsigned long long index_buffer_offset=0;
+    unsigned long long uniform_buffer_offset=0;
+    RenderPass(ColorBuffer* target):cur_target(target){};
 };
 /**
- * 目前默认格式RGBA8888
- * 目前只有一个顶点和索引缓冲区
  * 只画三角形，每个独立占3顶点
  * 总是使用索引绘制
  */
@@ -147,12 +145,11 @@ public:
     ColorBuffer* swapchain_texture;
     std::unordered_map<std::string,ColorBuffer*> render_targets;
     std::unordered_map<std::string,IPipeline*> pipelines;
-    std::vector<VertexAttrib> vert_buffer;
-    std::vector<glm::ivec3> index_buffer;
-    RenderPass cur_renderpass;
-    //每个drawcall即每个物体的uniform都不同，即使是类型不同
-    //uniform的具体类型或者说数据布局只有着色器内部知道
-    void drawcall(unsigned long long triangle_offset, unsigned long long triangle_count, unsigned long long vert_offset, const Uniform *uniform);
+    std::vector<VertexBuffer*> vert_buffers;
+    std::vector<IndiceBuffer*> index_buffers;
+    std::vector<UniformBuffer*>uniforms;
+    void drawcall(const RenderPass &render_pass, unsigned long long triangle_offset, unsigned long long triangle_count,
+                  unsigned long long vert_offset, unsigned long long uniform_offset);
     void present();
 };
 

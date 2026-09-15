@@ -4,19 +4,23 @@
 
 #include "Pipelines.h"
 
-VertexShaderOutput *DefaultPipeline::vertexShader(const VertexAttrib *in, const Uniform *uniform) {
+
+VertexShaderOutput *Default2DPipeline::vertexShader(const std::any& in, const Uniform *uniformBase) {
     auto out= new VertexShaderOutput();
+    auto vert = std::any_cast<VertexAttrib2D>(in);
+    auto* uniform=(Uniform2D*)uniformBase;
     //把顶点从模型空间换到裁剪空间直接到ndc空间
-    glm::vec3 ndcPos = uniform->mvpMatrix * glm::vec3(in->pos.x, in->pos.y, 1.0f);
-    out->pos=ndcPos;
-    out->uv=glm::vec2(in->uv.x, in->uv.y);
+    glm::vec3 ndcPos = uniform ->mvpMatrix * glm::vec3(vert.pos.x, vert.pos.y, 1.0f);
+    out->pos={ndcPos.x, ndcPos.y, 0, 1};
+    out->uv=glm::vec2(vert.uv.x, vert.uv.y);
     glm::vec4 color={1,1,1,1};
     out->color = color;
     return out;
 }
 
-glm::vec4 DefaultPipeline::fragmentShader(const FragmentAttrib *in, const Uniform *uniform) {
+glm::vec4 Default2DPipeline::fragmentShader(const FragmentAttrib *in, const Uniform *uniformBase) {
     glm::vec4 out;
+    auto* uniform=(Uniform2D*)uniformBase;
     if (uniform->texture!=nullptr) {
     //采样
         glm::vec4 srcColor=uniform->texture->at(in->uv.x*uniform->texture->width,(in->uv.y)*uniform->texture->height);
@@ -34,16 +38,18 @@ glm::vec4 DefaultPipeline::fragmentShader(const FragmentAttrib *in, const Unifor
     return out;
 }
 
-VertexShaderOutput *ComposePipeline::vertexShader(const VertexAttrib *in, const Uniform *uniform) {
+VertexShaderOutput *ComposePipeline::vertexShader(const std::any& in, const Uniform *uniform) {
     auto out=new VertexShaderOutput();
-    out->pos=in->pos;
-    out->uv=glm::vec2(in->uv.x, in->uv.y);
-    out->color=in->color;
+    auto vert=std::any_cast<VertexAttrib2D>(in);
+    out->pos={vert.pos.x,vert.pos.y,0,1};
+    out->uv=vert.uv;
+    out->color=vert.color;
     return out;
 }
 
-glm::vec4 ComposePipeline::fragmentShader(const FragmentAttrib *in, const Uniform *uniform) {
+glm::vec4 ComposePipeline::fragmentShader(const FragmentAttrib* in, const Uniform *uniformBase) {
     glm::vec4 out;
+    auto* uniform=(UniformCompositor*)uniformBase;
     //混合
     out=in->color;
     for (ColorBuffer* src:uniform->textures) {

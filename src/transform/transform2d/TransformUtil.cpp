@@ -4,12 +4,12 @@
 
 #include "TransformUtil.h"
 #include "Transform2dComponents.h"
-#include "../../Context.hpp"
-#include "../../ecs/Util.h"
-#include "../../../Config.h"
 #include "glm/glm.hpp"
+#include "../../core/ecs/Util.h"
+#include "../../core/Context.hpp"
+#include "../../Config.h"
 
-glm::mat3 TransformUtil::transformToMatrix(const Transform &transform) {
+glm::mat3 TransformUtil::transformToMatrix(const Transform2D &transform) {
     float sx=transform.scale.x;
     float sy=transform.scale.y;
     glm::mat3 matScale=glm::mat3(
@@ -17,8 +17,8 @@ glm::mat3 TransformUtil::transformToMatrix(const Transform &transform) {
         0,sy,0,
         0,0,1
     );
-    float c=glm::cos(glm::radians(transform.rotation.angle));
-    float s=glm::sin(glm::radians(transform.rotation.angle));
+    float c=glm::cos(glm::radians(transform.rotation));
+    float s=glm::sin(glm::radians(transform.rotation));
     glm::mat3 matRotate=glm::mat3(
         c, s, 0,
         -s, c, 0,
@@ -33,11 +33,11 @@ glm::mat3 TransformUtil::transformToMatrix(const Transform &transform) {
         );
     return matTranslate*matRotate*matScale;
 }
-glm::mat3 TransformUtil::getReverseTransformToMatrix(const Transform &transform) {
-    Transform reverseTransform;
+glm::mat3 TransformUtil::getReverseTransformToMatrix(const Transform2D &transform) {
+    Transform2D reverseTransform;
     reverseTransform.scale.x=1.0f/transform.scale.x;
     reverseTransform.scale.y=1.0f/transform.scale.y;
-    reverseTransform.rotation.angle=-transform.rotation.angle;
+    reverseTransform.rotation=-transform.rotation;
     reverseTransform.position.x=-transform.position.x;
     reverseTransform.position.y=-transform.position.y;
     float sx=reverseTransform.scale.x;
@@ -47,8 +47,8 @@ glm::mat3 TransformUtil::getReverseTransformToMatrix(const Transform &transform)
         0,sy,0,
         0,0,1
     );
-    float c=glm::cos(glm::radians(reverseTransform.rotation.angle));
-    float s=glm::sin(glm::radians(reverseTransform.rotation.angle));
+    float c=glm::cos(glm::radians(reverseTransform.rotation));
+    float s=glm::sin(glm::radians(reverseTransform.rotation));
     glm::mat3 matRotate=glm::mat3(
         c, s, 0,
         -s, c, 0,
@@ -63,20 +63,20 @@ glm::mat3 TransformUtil::getReverseTransformToMatrix(const Transform &transform)
     );
     return matScale*matRotate*matTranslate;//反过来乘
 }
-Transform TransformUtil::matrixToTransform(const glm::mat3 &matrix) {
-    Transform transform;
+Transform2D TransformUtil::matrixToTransform(const glm::mat3 &matrix) {
+    Transform2D transform;
     transform.position.x=matrix[2][0];
     transform.position.y=matrix[2][1];
     float sx=glm::length(glm::vec2(matrix[0][0],matrix[1][0]));
     float sy=glm::length(glm::vec2(matrix[0][1],matrix[1][1]));
     float cos=(sx>0.0f)?matrix[0][0]/sx:1.0f;
     float sin=(sy>0.0f)?matrix[0][1]/sy:0.0f;
-    transform.rotation.angle=glm::degrees(glm::atan(sin,cos));
+    transform.rotation=glm::degrees(glm::atan(sin,cos));
     transform.scale.x=sx;
     transform.scale.y=sy;
     return transform;
 }
-Transform  TransformUtil::computeWorldToLocalTransform(const Transform &worldTransform,const Transform &parentWorldTransform) {
+Transform2D  TransformUtil::computeWorldToLocalTransform(const Transform2D &worldTransform,const Transform2D &parentWorldTransform) {
     // 递归计算世界坐标
     glm::mat3 parentWorldMatrix=getReverseTransformToMatrix(parentWorldTransform);
     glm::mat3 worldMatrix=transformToMatrix(worldTransform);
@@ -84,19 +84,19 @@ Transform  TransformUtil::computeWorldToLocalTransform(const Transform &worldTra
     return matrixToTransform(localMatrix);
 }
 
-Transform TransformUtil::computeLocalToWorldTransform(const TransformComp &localTransform, ecs::Scene* scene) {
+Transform2D TransformUtil::computeLocalToWorldTransform(const Transform2DComp &localTransform, ecs::Scene* scene) {
     if (!localTransform.parent.has_value()) {
         return localTransform.transform;
     }
 
     auto parentEntity = localTransform.parent.value();
-    auto parentTransformOpt = ecs::getComponent<TransformComp>(scene, parentEntity);
+    auto parentTransformOpt = ecs::getComponent<Transform2DComp>(scene, parentEntity);
     if (!parentTransformOpt.has_value()) {
         return localTransform.transform;
     }
-    Transform worldTransform;
+    Transform2D worldTransform;
     // 递归计算世界坐标
-    Transform parentWorldTransform = computeLocalToWorldTransform(parentTransformOpt.value(),scene);
+    Transform2D parentWorldTransform = computeLocalToWorldTransform(parentTransformOpt.value(),scene);
     glm::mat3 localMatrix=transformToMatrix(localTransform.transform);
     glm::mat3 parentWorldMatrix=transformToMatrix(parentWorldTransform);
     glm::mat3 worldMatrix=parentWorldMatrix*localMatrix;
@@ -104,14 +104,14 @@ Transform TransformUtil::computeLocalToWorldTransform(const TransformComp &local
 }
 
 
-Transform TransformUtil::computeRelativeTransform(const TransformComp &from, const TransformComp &to,
+Transform2D TransformUtil::computeRelativeTransform(const Transform2DComp &from, const Transform2DComp &to,
                                                   ecs::Scene* scene) {
 
-    Transform worldTransformOA=computeLocalToWorldTransform(from,scene);
-    Transform worldTransform1=computeLocalToWorldTransform(to,scene);
+    Transform2D worldTransformOA=computeLocalToWorldTransform(from,scene);
+    Transform2D worldTransform1=computeLocalToWorldTransform(to,scene);
     return computeWorldToLocalTransform(worldTransform1,worldTransformOA);
 }
-TransformComp TransformUtil::rotate(const TransformComp &transform, float angle,Position pivot) {
+Transform2DComp TransformUtil::rotate(const Transform2DComp &transform, float angle,glm::vec2 pivot) {
     float rad = glm::radians(angle);
     //正反平移矩阵
     glm::mat3 Tneg = glm::mat3(1,0,0, 0,1,0, -pivot.x,-pivot.y,1);
@@ -120,18 +120,18 @@ TransformComp TransformUtil::rotate(const TransformComp &transform, float angle,
     glm::mat3 R = glm::mat3(c, s, 0, -s, c, 0, 0, 0, 1);
     glm::mat3 m = Tpos * R * Tneg * transformToMatrix(transform.transform);
     // 抽取回 Transform（与 computeLocalToWorldTransform 一致）
-    Transform out_transform=matrixToTransform(m);
-    TransformComp out;
+    Transform2D out_transform=matrixToTransform(m);
+    Transform2DComp out;
     out.transform = out_transform;
     out.parent = transform.parent;
     return out;
 }
 
-Position TransformUtil::screenToWorldPosition(Position screenPos, TransformComp cameraTransformComp, CameraComp camera_comp) {
+glm::vec2 TransformUtil::screenToWorldPosition(glm::vec2 screenPos, Transform2DComp cameraTransformComp, Camera2DComp camera_comp) {
     auto config=ApplicationContext::getInstance().get<Config>("config");
-    auto x=(screenPos.x/config.LOGIC_WIDTH)*camera_comp.captureWidth;
-    auto y=(screenPos.y/config.LOGIC_HEIGHT)*camera_comp.captureHeight;
-    auto viewTransform=Transform{{x,y},{0},{1,1}};
+    auto x=(screenPos.x/config.WINDOW_WIDTH)*camera_comp.captureWidth;
+    auto y=(screenPos.y/config.WINDOW_HEIGHT)*camera_comp.captureHeight;
+    auto viewTransform=Transform2D{{x,y},{0},{1,1}};
     auto viewToWorldMatrix = getReverseTransformToMatrix(cameraTransformComp.transform);
     auto worldMatrix=viewToWorldMatrix*transformToMatrix(viewTransform);
     return matrixToTransform(worldMatrix).position;
@@ -139,8 +139,8 @@ Position TransformUtil::screenToWorldPosition(Position screenPos, TransformComp 
 
 std::vector<Entity> TransformUtil::getChildEntities( ecs::Scene* scene,const Entity e1) {
     std::vector<Entity> children;
-    for (auto entity : ecs::getEntities<TransformComp>(scene)) {
-        if (ecs::getComponent<TransformComp>(scene, entity).value().parent==e1) {
+    for (auto entity : ecs::getEntities<Transform2DComp>(scene)) {
+        if (ecs::getComponent<Transform2DComp>(scene, entity).value().parent==e1) {
             children.push_back(entity);
         }
     }

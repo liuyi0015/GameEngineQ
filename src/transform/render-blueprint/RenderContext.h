@@ -9,10 +9,12 @@
 
 struct RenderContext {
     //Entity,offset
-    std::unordered_map<unsigned long long,unsigned long long>vertStarts;
+    std::unordered_map<unsigned long long,unsigned long long>vertOffsets;
     std::unordered_map<unsigned long long,unsigned long long>vertCounts;
-    std::unordered_map<unsigned long long,unsigned long long>indexStarts;
+    std::unordered_map<unsigned long long,unsigned long long>indexOffsets;
     std::unordered_map<unsigned long long,unsigned long long>indexCounts;
+    std::unordered_map<unsigned long long,unsigned long long> uniformOffsets;
+    //合成器
     unsigned long long composeVertStart;
     unsigned long long composeIndexStart;
 };

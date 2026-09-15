@@ -62,15 +62,16 @@ namespace ecs{
         }
         return std::vector(entitySet.begin(), entitySet.end());
     }
-
-    static Entity searchEntity(const std::string &name, Scene* scene) {
-        for (auto entity : getEntities<ecs::Name>(scene)) {
-            if (getComponent<ecs::Name>(scene, entity).value().value==name) {
-                return entity;
-            }
+    //
+    template<typename ComponentType>
+    static std::vector<Entity> searchEntity(Scene* scene) {
+        std::vector<Entity> entities;
+        for (const auto& [entity, component] : scene->ce_storage[typeid(ComponentType)]) {
+            entities.push_back(entity);
         }
-        return -1;
+        return entities;
     }
+
     struct ExecutionOrders {
         int start_order=0;
         int update_order=0;

@@ -19,10 +19,11 @@ add_executable(${projectname}
 # add之前要先设好参数，即：使用ttf默认的字体库
 set(SDLTTF_VENDORED ON)
 
-add_subdirectory(third-party/SDL3-3.4.16 EXCLUDE_FROM_ALL)
+add_subdirectory(third-party/SDL3-3.4.0 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/SDL3_ttf-3.2.2 EXCLUDE_FROM_ALL)
-add_subdirectory(third-party/SDL3_image-3.4.6 EXCLUDE_FROM_ALL)
+add_subdirectory(third-party/SDL3_image-3.2.6 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/SDL3_mixer-3.2.4 EXCLUDE_FROM_ALL)
+add_subdirectory(third-party/glm-master EXCLUDE_FROM_ALL)
 #静态库
 #link_libraries()
 #link_directories()
@@ -31,9 +32,6 @@ add_subdirectory(third-party/SDL3_mixer-3.2.4 EXCLUDE_FROM_ALL)
 
 # 添加从网络获取的库
 include(FetchContent)
-FetchContent_Declare(glm
-        GIT_REPOSITORY https://github.com/icaven/glm.git)
-FetchContent_MakeAvailable(glm)
 
 FetchContent_Declare(box3d
         GIT_REPOSITORY https://github.com/erincatto/box3d.git

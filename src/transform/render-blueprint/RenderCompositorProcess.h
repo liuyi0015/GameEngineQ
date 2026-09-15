@@ -7,28 +7,27 @@
 #include <vector>
 
 #include "../../core/ecs/System.h"
-#include "../../soft-render/SoftRenderer2D.h"
+#include "../../soft-render/GpuSimulator.h"
 #include "../../core/Context.hpp"
-#include "../../soft-render/RenderContext.h"
+#include "RenderContext.h"
 
-class RenderCompositorSystem:public ecs::System{
+class RenderCompositorProcess{
 private:
+    ecs::Scene* scene;
     SoftGPU* gpu;
     RenderContext* renderContext;
     ColorBuffer* target;
 public:
-    explicit RenderCompositorSystem(ecs::Scene* scene,RenderContext* renderContext)
-    : System(scene),  renderContext(renderContext){
+    explicit RenderCompositorProcess(ecs::Scene* scene,RenderContext* renderContext)
+    : scene(scene),  renderContext(renderContext){
         gpu = ApplicationContext::getInstance().get<SoftGPU *>("mygpu");
         target=gpu->swapchain_texture;
     }
 
     std::vector<ColorBuffer*> srcs;
 
-    void start() override;
-    void update(double deltaTime) override{};
-    void fixed_update(double deltaTime) override{};
-    void draw() override;
+    void start() ;
+    void draw();
 };
 
 

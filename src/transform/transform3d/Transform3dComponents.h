@@ -5,24 +5,13 @@
 #ifndef GAMEENGINE_TRANSFORM3DCOMPONENTS_H
 #define GAMEENGINE_TRANSFORM3DCOMPONENTS_H
 #include <optional>
-#include "../../ecs/Scene.h"
-struct Position3D {
-    float x=0.0f;
-    float y=0.0f;
-    float z=0.0f;
-};
+#include "glm/vec3.hpp"
+#include "../../core/ecs/Entity.h"
 
-struct Rotation3D {
-};
-struct Scale3D {
-    float x = 1.0f;
-    float y = 1.0f;
-    float z = 1.0f;
-};
 struct Transform3D {
-    Position3D position;
-    Rotation3D rotation;
-    Scale3D scale;
+    glm::vec3 position={0,0,0};
+    glm::vec3 rotation={0,0,0};
+    glm::vec3 scale={1,1,1};
 };
 struct Transform3DComp {
     Transform3D transform;

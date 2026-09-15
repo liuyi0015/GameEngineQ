@@ -2,22 +2,22 @@
 // Created by abc17 on 2026/8/20.
 //
 
-#include "SoftRenderer2D.h"
+#include "GpuSimulator.h"
 
 #include "glm/glm.hpp"
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_surface.h"
-#include "../graphics/ShapeBuilder.h"
+#include "../graphics/Shape2DBuilder.h"
 
 
-void IPipeline::run(const std::vector<VertexAttrib> &verts, const std::vector<glm::ivec3> &indices,
+void IPipeline::run(const std::vector<std::any>& verts, const std::vector<glm::ivec3> &indices,
                     const Uniform *uniform,ColorBuffer* const target) {
     //顶点着色
     VertexShaderOutput* vert_outs[verts.size()];
     for (int i = 0; i < verts.size(); ++i) {
         vert_outs[i] = vertexShader(&verts[i],uniform);
     }
-    //光栅化，透明度还要留着，合成最终纹理之后才能丢
+    //光栅化
     //渲染管线可能在绘制中途工作，不能清空渲染目标
     for (int k=0;k<indices.size();k++) {
         auto vert_out0=*vert_outs[indices[k][0]];
@@ -27,7 +27,7 @@ void IPipeline::run(const std::vector<VertexAttrib> &verts, const std::vector<gl
         glm::vec2 t0={(vert_out0.pos.x/2.0+0.5)*target->width,(0.5-vert_out0.pos.y/2.0)*target->height};
         glm::vec2 t1={(vert_out1.pos.x/2.0+0.5)*target->width,(0.5-vert_out1.pos.y/2.0)*target->height};
         glm::vec2 t2={(vert_out2.pos.x/2.0+0.5)*target->width,(0.5-vert_out2.pos.y/2.0)*target->height};
-        Geometry::PointTriangle2D triangle{t0,t1,t2};
+        PointTriangle2D triangle{t0,t1,t2};
 
         for (int i=0;i<target->width;i++) {
             for (int j=0;j<target->height;j++) {
@@ -35,11 +35,11 @@ void IPipeline::run(const std::vector<VertexAttrib> &verts, const std::vector<gl
                 glm::vec2 screenPos={i+0.5,j+0.5};
                 if (triangle.contains(screenPos) ){
                     FragmentAttrib frag{};
-                    frag.viewPos=screenPos;
+                    frag.viewPos={screenPos,0,1};
                     //面积比表示重心坐标
-                    Geometry::PointTriangle2D triangle0{screenPos,t1,t2};
-                    Geometry::PointTriangle2D triangle1{screenPos,t0,t2};
-                    Geometry::PointTriangle2D triangle2{screenPos,t0,t1};
+                    PointTriangle2D triangle0{screenPos,t1,t2};
+                    PointTriangle2D triangle1{screenPos,t0,t2};
+                    PointTriangle2D triangle2{screenPos,t0,t1};
                     float w0=triangle0.area()/triangle.area();
                     float w1=triangle1.area()/triangle.area();
                     float w2=triangle2.area()/triangle.area();
@@ -57,16 +57,20 @@ void IPipeline::run(const std::vector<VertexAttrib> &verts, const std::vector<gl
     // target->testColorBuffer();
 }
 
-void SoftGPU::drawcall( unsigned long long triangle_offset, unsigned long long triangle_count,
-    unsigned long long vert_offset,const Uniform *uniform) {
-    //偏移定位
+void SoftGPU::drawcall(const RenderPass& render_pass, unsigned long long triangle_offset, unsigned long long triangle_count,
+    unsigned long long vert_offset,unsigned long long uniform_offset) {
+    //每次都从0开始覆盖，每帧都要重新上传
+    //顶点索引偏移
     std::vector<glm::ivec3> triangles;
     for (int i=triangle_offset;i<triangle_offset+triangle_count;i++) {
-        glm::ivec3 triangle={index_buffer[i].x+vert_offset,index_buffer[i].y+vert_offset,index_buffer[i].z+vert_offset};
+        auto value = index_buffers[render_pass.index_buffer_offset]->indices[i];
+        glm::ivec3 triangle={value.x+vert_offset,value.y+vert_offset,value.z+vert_offset};
         triangles.push_back(triangle);
     }
-    IPipeline* pipeline=pipelines[cur_renderpass.cur_pipeline_name];
-    pipeline->run(vert_buffer,triangles,uniform,cur_renderpass.cur_target);
+    IPipeline* pipeline=render_pass.cur_pipeline;
+    Uniform* uniform=uniforms[render_pass.uniform_buffer_offset]->uniforms[uniform_offset];
+    ColorBuffer* target=render_pass.cur_target;
+    pipeline->run(vert_buffers[render_pass.vert_buffer_offset]->vertices,triangles,uniform,target);
     // triangle_offset+=triangle_count;
 }
 

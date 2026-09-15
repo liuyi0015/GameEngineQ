@@ -5,17 +5,15 @@
 #include "DemogameApplication.h"
 #include "GameComponents.h"
 #include "../core/ecs/BaseComponents.h"
-#include "../core/transform/transform2d/Transform2dComponents.h"
+#include "../transform/transform2d/Transform2dComponents.h"
 #include "../Config.h"
 #include "simple-systems/ChangeTransformSystem.h"
 #include "../anim/AnimationSystem.h"
-#include "render-blueprint/Render2DComponents.h"
+#include "../transform/render-blueprint/Render2DComponents.h"
 #include "SDL3_ttf/SDL_ttf.h"
 #include "simple-systems/PrintSystem.h"
 #include "../core/ResourceManager.hpp"
-#include "render-blueprint/Render2DSystem.h"
-#include "render-blueprint/UploadSystem.h"
-#include "systems/CameraInputListenerSystem.h"
+#include "../transform/render-blueprint/RenderSystem.h"
 
 // ecs::Scene *DemogameApplication::loadScene1() {
 //
@@ -45,29 +43,6 @@
 //         // auto* jumpSystem=new JumpSystem(scene,physics_system_id);
 //         // ecs::addSystem(scene,jumpSystem,{2});
 //     }
-//     {
-//         Entity camera1=Prefabs::camera(scene);
-//         ecs::setComponent<CameraInputListenerFlag>(scene, camera1, {});
-//         auto* cameraInputListenerSystem=new CameraInputListenerSystem(scene);
-//         ecs::addSystem(scene,cameraInputListenerSystem,{});
-//     }
-//     {
-//         auto* renderer=ApplicationContext::getInstance().get<SDL_Renderer*>("renderer");
-//         auto config=ApplicationContext::getInstance().get<Config>("config");
-//         SDL_Texture* target=SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA8888,
-//             SDL_TEXTUREACCESS_TARGET,config.LOGIC_WIDTH,config.LOGIC_HEIGHT);
-//         //要显示到屏幕的才直接给compositor
-//         compositor.addTarget(scene,target);
-//         auto* render2dSystem=new Render2dSystem(scene,target,camera1);
-//         ecs::addSystem(scene,render2dSystem,{});
-//     }
-//
-//     return scene;
-// }
-// void DemogameApplication::unloadScene1() {
-//     std::cout<<"unloadScene1"<<std::endl;
-//     compositor.removeTarget(getSceneByName("scene1"));
-// }
 class Scene1:public ecs::Scene{
 public:
     Scene1() {
@@ -83,25 +58,27 @@ public:
         }
         {
             //加载资源
+            //文字显示
+            TTF_Font* font1=TTF_OpenFont("assets/1.ttf", 24);
+            SDL_Surface* textSurface=TTF_RenderText_Blended_Wrapped(font1,"hello,ttf!hello,ttf!hello,ttf!hello,ttf!hello,ttf!hello,ttf!hello,ttf!hello,ttf!hello,ttf!",90,{255,255,255},80);
+
             auto* img1=IMG_Load("assets/1.png");
             ResourceManager::getInstance().getSurfaceCache().set("img1-tex",img1);
             //动画
             auto anim1=IMG_LoadAnimation("assets/1.gif");
             ResourceManager::getInstance().getAnimationCache().set("anim1",anim1);
-        }
-        {
-            //文字显示
+
         }
         {
             //image
             Entity img1_entity=ecs::createEntity(this);
             ecs::setComponent<ecs::Name>(this,img1_entity, ecs::Name{"img1"});
             ecs::setComponent<ecs::Enabled>(this,img1_entity, ecs::Enabled{true});
-            ecs::setComponent<TransformComp>(this,img1_entity, TransformComp{});
-            Geometry::Shape2D rect=Geometry::createRect({0,0},{988,852});
-            Mesh mesh;
+            ecs::setComponent<Transform2DComp>(this,img1_entity, Transform2DComp{{{400,0}}});
+            Shape2D rect=Shape2DBuilder::createRect({0,0},{988,852});
+            Mesh2D mesh;
             for (auto & point : rect.points) {
-                VertexAttrib v{};
+                VertexAttrib2D v{};
                 v.pos={point.x,point.y};
                 v.color={1,1,1,1};
                 mesh.vertices.push_back(v);
@@ -115,8 +92,9 @@ public:
             ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,
                 Material{"img1-pipeline",{255,255,255,255},"img1-tex"},
                 mesh});
-            ecs::setComponent<FrameAnimatorFlag>(this,img1_entity,FrameAnimatorFlag{"anim1",true});
+            // ecs::setComponent<FrameAnimatorFlag>(this,img1_entity,FrameAnimatorFlag{"anim1",true});
 
+            ecs::setComponent<RotationFlag>(this,img1_entity,{-40.0f});
             auto* animationSystem=new AnimationSystem(this);
             ecs::addSystem(this,animationSystem,{});
         }
@@ -125,27 +103,16 @@ public:
             //摄像机的视口大小与transform(scale)无关，只看CameraComp
             Entity camera1=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,camera1, ecs::Enabled{true});
-            ecs::setComponent<TransformComp>(this,camera1,TransformComp{});
-            ecs::setComponent<CameraComp>(this,camera1,{1200,1080});
-            ecs::setComponent<RotationFlag>(this,camera1,{40.0f});
-            auto* renderContext=new RenderContext();
-            auto config=ApplicationContext::getInstance().get<Config>("config");
-            auto* target=new ColorBuffer(config.LOGIC_WIDTH,config.LOGIC_HEIGHT);
-            // auto* gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
-            // auto* target=gpu->swapchain_texture;
-            auto* uploadSystem=new UploadSystem(this,renderContext);
-            ecs::addSystem(this,uploadSystem,{0,0,0,1});
-            auto* render2dSystem=new Render2DSystem(this,target,camera1,renderContext,"2dtarget");
-            ecs::addSystem(this,render2dSystem,{0,0,0,2});
-            auto* renderCompositorSystem=new RenderCompositorSystem(this,renderContext);
-            renderCompositorSystem->srcs.push_back(render2dSystem->target);
-            ecs::addSystem(this,renderCompositorSystem,{0,0,0,3});
+            ecs::setComponent<Transform2DComp>(this,camera1,Transform2DComp{});
+            auto* target=new ColorBuffer(1200,1080);
+            ecs::setComponent<Camera2DComp>(this,camera1,{1200,1080,target});
 
             // ecs::setComponent<CameraInputListenerFlag>(this, camera1, {});
             // auto* cameraInputListenerSystem=new CameraInputListenerSystem(this);
             // ecs::addSystem(this,cameraInputListenerSystem,{});
+            auto* renderSystem=new RenderSystem(this);
+            // ecs::addSystem(this, renderSystem, {});
 
-            //todo 小屏幕渲染目标(而不给compositorPass)
         }
     }
     ~Scene1() {
@@ -155,7 +122,7 @@ public:
     }
 };
 void DemogameApplication::init() {
-    TTF_Font* font1=TTF_OpenFont("assets/1.ttf", 24);
-    ResourceManager::getInstance().getFontCache().set("font1", font1);
+    //全局数据区
+
     scene=new Scene1();
 }

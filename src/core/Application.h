@@ -10,7 +10,6 @@
 
 #include "Context.hpp"
 #include "EventBus.h"
-#include "../demo/render-blueprint/RenderCompositorSystem.h"
 #include "ecs/Scene.h"
 #include "ecs/System.h"
 #include "ecs/Util.h"
@@ -22,12 +21,17 @@ struct SystemComparer{
     }
 };
 //可以直接用在main里，相当于空应用
-class EcsApplication {
+class Application {
 protected:
     ecs::Scene* scene;
 public:
-    virtual ~EcsApplication() = default;
-    virtual void init() {}
+    virtual ~Application() {
+        delete scene;
+    };
+    //默认实现空，会被继承者覆盖
+    virtual void init() {
+        scene=new ecs::Scene();
+    }
     void start() {
         std::sort(scene->system_start_orders.begin(), scene->system_start_orders.end(), SystemComparer());
         std::sort(scene->system_update_orders.begin(), scene->system_update_orders.end(), SystemComparer());
