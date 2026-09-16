@@ -18,12 +18,20 @@ private:
     ecs::Scene* scene;
     RenderContext* renderContext;
     SoftGPU *gpu;
+    std::size_t vert_buffer_index;
+    std::size_t index_buffer_index;
+    std::size_t uniform_buffer_index;
+
 public:
     explicit Render2DProcess(ecs::Scene* scene,RenderContext* renderContext)
         : scene(scene), renderContext(renderContext){
         this->gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
     }
+    void initBuffers();
+    void registerPipelines();
+    void uploadData();
     void draw() ;
+    void endFrame();
 };
 
 

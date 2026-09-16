@@ -15,8 +15,8 @@ struct RenderContext {
     std::unordered_map<unsigned long long,unsigned long long>indexCounts;
     std::unordered_map<unsigned long long,unsigned long long> uniformOffsets;
     //合成器
-    unsigned long long composeVertStart;
-    unsigned long long composeIndexStart;
+    unsigned long long composeVertStart=0;
+    unsigned long long composeIndexStart=0;
 };
 
 

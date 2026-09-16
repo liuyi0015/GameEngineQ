@@ -104,14 +104,15 @@ public:
             Entity camera1=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,camera1, ecs::Enabled{true});
             ecs::setComponent<Transform2DComp>(this,camera1,Transform2DComp{});
-            auto* target=new ColorBuffer(1200,1080);
+            auto* gpu = ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
+            auto* target=new ColorBuffer(800,600);
             ecs::setComponent<Camera2DComp>(this,camera1,{1200,1080,target});
 
             // ecs::setComponent<CameraInputListenerFlag>(this, camera1, {});
             // auto* cameraInputListenerSystem=new CameraInputListenerSystem(this);
             // ecs::addSystem(this,cameraInputListenerSystem,{});
             auto* renderSystem=new RenderSystem(this);
-            // ecs::addSystem(this, renderSystem, {});
+            ecs::addSystem(this, renderSystem, {});
 
         }
     }

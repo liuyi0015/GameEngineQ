@@ -20,7 +20,7 @@ struct UniformCompositor:Uniform {
     //合成器用的
     std::vector<ColorBuffer*>textures;
     // 其他全局数据，比如时间、透明度、混合颜色、光照、高度图等也可以放这里
-    ~UniformCompositor() {
+    ~UniformCompositor() override {
         for (auto* tb : textures) {
             delete tb;
         }
@@ -29,14 +29,14 @@ struct UniformCompositor:Uniform {
 struct Uniform2D:Uniform {
     ColorBuffer* texture;
     glm::mat3 mvpMatrix;
-    ~Uniform2D() {
+    ~Uniform2D() override {
         delete texture;
     }
 };
 struct Uniform3D:Uniform {
     ColorBuffer* texture;
     glm::mat4 mvpMatrix;
-    ~Uniform3D() {
+    ~Uniform3D() override {
         delete texture;
     }
 };

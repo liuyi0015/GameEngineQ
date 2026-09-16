@@ -15,7 +15,7 @@ void IPipeline::run(const std::vector<std::any>& verts, const std::vector<glm::i
     //顶点着色
     VertexShaderOutput* vert_outs[verts.size()];
     for (int i = 0; i < verts.size(); ++i) {
-        vert_outs[i] = vertexShader(&verts[i],uniform);
+        vert_outs[i] = vertexShader(verts[i],uniform);
     }
     //光栅化
     //渲染管线可能在绘制中途工作，不能清空渲染目标
@@ -68,7 +68,7 @@ void SoftGPU::drawcall(const RenderPass& render_pass, unsigned long long triangl
         triangles.push_back(triangle);
     }
     IPipeline* pipeline=render_pass.cur_pipeline;
-    Uniform* uniform=uniforms[render_pass.uniform_buffer_offset]->uniforms[uniform_offset];
+    Uniform* uniform=uniform_buffers[render_pass.uniform_buffer_offset]->uniforms[uniform_offset];
     ColorBuffer* target=render_pass.cur_target;
     pipeline->run(vert_buffers[render_pass.vert_buffer_offset]->vertices,triangles,uniform,target);
     // triangle_offset+=triangle_count;

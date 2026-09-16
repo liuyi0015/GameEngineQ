@@ -84,9 +84,9 @@ public:
     }
 };
 
-//软渲染器暂时先把类型写死方便debug
 struct Uniform {//一次绘制中全局不变的数据
-
+    //虚析构才能调用子类的析构
+    virtual ~Uniform() = default;
 };
 
 struct VertexShaderOutput {
@@ -122,11 +122,13 @@ struct UniformBuffer {
 struct  RenderPass {
 public:
     ColorBuffer* const cur_target;
+    const unsigned long long vert_buffer_offset;
+    const unsigned long long index_buffer_offset;
+    const unsigned long long uniform_buffer_offset;
     IPipeline* cur_pipeline=nullptr;
-    unsigned long long vert_buffer_offset=0;
-    unsigned long long index_buffer_offset=0;
-    unsigned long long uniform_buffer_offset=0;
-    RenderPass(ColorBuffer* target):cur_target(target){};
+    RenderPass(ColorBuffer* target,unsigned long long vert_buffer_offset,unsigned long long index_buffer_offset,
+        unsigned long long uniform_buffer_offset):cur_target(target),vert_buffer_offset(vert_buffer_offset),
+    index_buffer_offset(index_buffer_offset),uniform_buffer_offset(uniform_buffer_offset){};
 };
 /**
  * 只画三角形，每个独立占3顶点
@@ -147,7 +149,7 @@ public:
     std::unordered_map<std::string,IPipeline*> pipelines;
     std::vector<VertexBuffer*> vert_buffers;
     std::vector<IndiceBuffer*> index_buffers;
-    std::vector<UniformBuffer*>uniforms;
+    std::vector<UniformBuffer*>uniform_buffers;
     void drawcall(const RenderPass &render_pass, unsigned long long triangle_offset, unsigned long long triangle_count,
                   unsigned long long vert_offset, unsigned long long uniform_offset);
     void present();
