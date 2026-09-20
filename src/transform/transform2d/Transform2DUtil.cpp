@@ -49,7 +49,7 @@ Transform2D Transform2DUtil::matrixToTransform(const glm::mat3 &matrix) {
     float sx=glm::length(glm::vec2(matrix[0][0],matrix[1][0]));
     float sy=glm::length(glm::vec2(matrix[0][1],matrix[1][1]));
     float cos=(sx>0.0f)?matrix[0][0]/sx:1.0f;
-    float sin=(sy>0.0f)?matrix[0][1]/sy:0.0f;
+    float sin=(sy>0.0f)?matrix[1][0]/sy:0.0f;
     transform.rotation=glm::degrees(glm::atan(sin,cos));
     transform.scale.x=sx;
     transform.scale.y=sy;

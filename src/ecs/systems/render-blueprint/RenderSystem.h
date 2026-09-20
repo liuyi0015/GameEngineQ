@@ -5,6 +5,7 @@
 #ifndef GAMEENGINEQ_RENDERSYSTEM_H
 #define GAMEENGINEQ_RENDERSYSTEM_H
 #include "Render2DProcess.h"
+#include "Render3DProcess.h"
 #include "RenderCompositorProcess.h"
 #include "../../System.h"
 #include "../../../soft-render/GpuSimulator.h"
@@ -15,6 +16,7 @@ private:
     RenderContext * renderContext=nullptr;
     Render2DProcess * render2dProcess=nullptr;
     RenderCompositorProcess * renderCompositorProcess=nullptr;
+    Render3DProcess * render3dProcess=nullptr;
 
 public:
     explicit RenderSystem(ecs::Scene* scene);

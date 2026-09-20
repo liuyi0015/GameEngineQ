@@ -40,7 +40,7 @@ static glm::mat4 matRotate(float angleX, float angleY,float angleZ) {
         0,0,1,0,
         0,0,0,1
         );
-    glm::mat4 result=resultX*resultY*resultZ;
+    glm::mat4 result=resultZ*resultY*resultX;
     return result;
 }
 static glm::mat4 matTranslate(float x, float y, float z) {
@@ -49,6 +49,26 @@ static glm::mat4 matTranslate(float x, float y, float z) {
         0,1,0,0,
         0,0,1,0,
         x,y,z,1
+        );
+    return result;
+}
+
+glm::mat4 Transform3DUtil::matProject(float fov,float a, float n, float f) {
+    glm::mat4 result=glm::mat4(
+        1/(a*glm::tan(fov/2)),0,0,0,
+        0,1/glm::tan(fov/2),0,0,
+        0,0,f/(n-f), -f*n/(f-n),
+        0,0,1,0
+        );
+    return result;
+}
+glm::mat4 Transform3DUtil::matViewport(float W, float H) {
+    //注意缩放H的负号，表示y轴反向
+    glm::mat4 result=glm::mat4(
+        W/2,0,0,W/2,
+        0,-H/2,0,H/2,
+        0,0,1,0,
+        0,0,0,1
         );
     return result;
 }
@@ -72,6 +92,23 @@ Transform3D Transform3DUtil::matrixToTransform(glm::mat4 matrix) {
 }
 
 glm::mat4 Transform3DUtil::getReverseTransformToMatrix(const Transform3D &transform) {
-    return glm::mat4(1);
+    Transform3D reverseTransform;
+    reverseTransform.scale.x=1.0f/transform.scale.x;
+    reverseTransform.scale.y=1.0f/transform.scale.y;
+    reverseTransform.scale.z=1.0f/transform.scale.z;
+    reverseTransform.rotation=-transform.rotation;
+    reverseTransform.position=-transform.position;
+    float sx=reverseTransform.scale.x;
+    float sy=reverseTransform.scale.y;
+    float sz=reverseTransform.scale.z;
+    glm::mat4 scaleMat=matScale(sx,sy,sz);
+    glm::mat4 rotMat=matRotate(glm::radians(transform.rotation.x),
+        glm::radians(transform.rotation.y),glm::radians(transform.rotation.z));
+    float px=reverseTransform.position.x;
+    float py=reverseTransform.position.y;
+    float pz=reverseTransform.position.z;
+    glm::mat4 transMat=matTranslate(px,py,pz);
+    //反过来乘，表示一步一步撤销变换，先撤销平移再撤销旋转最后缩放
+    return scaleMat*rotMat*transMat;
 }
 

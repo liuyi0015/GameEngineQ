@@ -17,14 +17,13 @@ private:
     ecs::Scene* scene;
     SoftGPU* gpu;
     RenderContext* renderContext;
-    ColorBuffer* target;
     std::size_t vert_buffer_index;
     std::size_t index_buffer_index;
     std::size_t uniform_buffer_index;
 
 public:
-    explicit Render3DProcess(ecs::Scene* scene,RenderContext* renderContext,ColorBuffer* target)
-    : scene(scene),  renderContext(renderContext),target(target){
+    explicit Render3DProcess(ecs::Scene* scene,RenderContext* renderContext)
+    : scene(scene),  renderContext(renderContext){
         gpu = ApplicationContext::getInstance().get<SoftGPU *>("mygpu");
     }
 

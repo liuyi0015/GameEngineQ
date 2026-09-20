@@ -12,6 +12,13 @@ Transform2D  TransformSceneUtil::computeWorldToLocalTransform(const Transform2D 
     glm::mat3 localMatrix=worldToParentMatrix * worldMatrix;
     return Transform2DUtil::matrixToTransform(localMatrix);
 }
+Transform3D TransformSceneUtil::computeWorldToLocalTransform(const Transform3D &worldTransform,const Transform3D &parentWorldTransform) {
+    // 递归计算世界坐标
+    glm::mat4 worldToParentMatrix=Transform3DUtil::getReverseTransformToMatrix(parentWorldTransform);
+    glm::mat4 worldMatrix=Transform3DUtil::transformToMatrix(worldTransform);
+    glm::mat4 localMatrix=worldToParentMatrix * worldMatrix;
+    return Transform3DUtil::matrixToTransform(localMatrix);
+}
 
 Transform2D TransformSceneUtil::computeLocalToWorldTransform(const Transform2DComp &localTransformComp, ecs::Scene* scene) {
     if (!localTransformComp.parent.has_value()) {
@@ -31,12 +38,37 @@ Transform2D TransformSceneUtil::computeLocalToWorldTransform(const Transform2DCo
     return Transform2DUtil::matrixToTransform(worldMatrix);
 }
 
+Transform3D TransformSceneUtil::computeLocalToWorldTransform(const Transform3DComp &localTransformComp, ecs::Scene *scene) {
+    if (!localTransformComp.parent.has_value()) {
+        return localTransformComp.transform;
+    }
+
+    auto parentEntity = localTransformComp.parent.value();
+    auto parentTransformOpt = ecs::getComponent<Transform3DComp>(scene, parentEntity);
+    if (!parentTransformOpt.has_value()) {
+        return localTransformComp.transform;
+    }
+    // 递归计算世界坐标
+    Transform3D parentWorldTransform = computeLocalToWorldTransform(parentTransformOpt.value(),scene);
+    glm::mat4 localMatrix=Transform3DUtil::transformToMatrix(localTransformComp.transform);
+    glm::mat4 parentWorldMatrix=Transform3DUtil::transformToMatrix(parentWorldTransform);
+    glm::mat4 worldMatrix=parentWorldMatrix*localMatrix;
+    return Transform3DUtil::matrixToTransform(worldMatrix);
+}
+
 
 Transform2D TransformSceneUtil::computeRelativeTransform(const Transform2DComp &from, const Transform2DComp &to,
-                                                  ecs::Scene* scene) {
+                                                         ecs::Scene* scene) {
 
     Transform2D worldTransformOA=computeLocalToWorldTransform(from,scene);
     Transform2D worldTransform1=computeLocalToWorldTransform(to,scene);
+    return computeWorldToLocalTransform(worldTransform1,worldTransformOA);
+}
+
+Transform3D TransformSceneUtil::computeRelativeTransform(const Transform3DComp &from, const Transform3DComp &to,
+    ecs::Scene *scene) {
+    Transform3D worldTransformOA=computeLocalToWorldTransform(from,scene);
+    Transform3D worldTransform1=computeLocalToWorldTransform(to,scene);
     return computeWorldToLocalTransform(worldTransform1,worldTransformOA);
 }
 

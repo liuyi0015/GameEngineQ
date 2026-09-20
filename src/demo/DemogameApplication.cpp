@@ -14,6 +14,7 @@
 #include "../ecs/systems/render-blueprint/RenderSystem.h"
 #include "../graphics/Shape2DBuilder.h"
 #include "../ecs/util/TransformSceneUtil.h"
+#include "../graphics/Shape3DBuilder.h"
 // ecs::Scene *DemogameApplication::loadScene1() {
 //
 //     auto* scene=new ecs::Scene("scene1");
@@ -88,22 +89,18 @@ public:
             mesh.vertices[2].uv={1,1};//右下
             mesh.vertices[3].uv={0,1};//左下
             mesh.indices=rect.indices;
-            ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,
-                Material{"img1-pipeline",{255,255,255,255},"img1-tex"},
-                mesh});
-            ecs::setComponent<FrameAnimationFlag>(this,img1_entity,FrameAnimationFlag{"anim1",true});
+            //todo 目前pipeline写死在render2dProcess，这里配置无效
+            Material material={"img1-pipeline",{255,255,255,255},"img1-tex"};
+            ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,material,mesh});
 
             ecs::setComponent<RotationFlag>(this,img1_entity,{-40.0f});
+            ecs::setComponent<FrameAnimationFlag>(this,img1_entity,FrameAnimationFlag{"anim1",0,true});
             auto* animationSystem=new AnimationSystem(this);
             ecs::addSystem(this,animationSystem,{});
         }
         {
-            //3d cube
-
-        }
-        {
             //render
-            //摄像机的视口大小与transform(scale)无关，只看CameraComp
+            //摄像机的视口大小与transform(scale)无关，只看CameraComp？
             Entity camera1=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,camera1, ecs::Enabled{true});
             ecs::setComponent<Transform2DComp>(this,camera1,Transform2DComp{});
@@ -120,13 +117,56 @@ public:
         }
     }
     ~Scene1() {
-        std::cout<<"unloadScene2"<<std::endl;
-        // compositor.removeTarget(getSceneByName("scene2"));
+        std::cout<<"析构Scene1"<<std::endl;
+    }
+};
+class Scene2:public ecs::Scene {
+public:
+    Scene2() {
+        {
+            Entity cube=ecs::createEntity(this);
+            ecs::setComponent<ecs::Enabled>(this,cube, ecs::Enabled{true});
+            ecs::setComponent<Transform3DComp>(this,cube,Transform3DComp{});
+            Shape3D shape=Shape3DBuilder::createCube();
+            Mesh3D mesh;
+            for (auto& point : shape.points) {
+                VertexAttrib3D v{};
+                v.pos={point.x,point.y,point.z};
+                v.color={1,1,1,1};
+                mesh.vertices.push_back(v);
+            }
+            //注意是先横坐标x后纵坐标y
+            mesh.vertices[0].uv={0,0};//左上
+            mesh.vertices[1].uv={1,0};//右上
+            mesh.vertices[2].uv={1,1};//右下
+            mesh.vertices[3].uv={0,1};//左下
 
+            mesh.vertices[4].uv={0,0};//左上
+            mesh.vertices[5].uv={1,0};//右上
+            mesh.vertices[6].uv={1,1};//右下
+            mesh.vertices[7].uv={0,1};//左下
+            mesh.indices=shape.indices;
+            Material material=Material{"3d_pipeline",{255,255,255,255},""};
+            ecs::setComponent<Drawable3DFlag>(this,cube,Drawable3DFlag{0,material,mesh});
+        }
+        {
+
+            Entity camera2=ecs::createEntity(this);
+            ecs::setComponent<ecs::Enabled>(this,camera2, ecs::Enabled{true});
+            ecs::setComponent<Transform3DComp>(this,camera2,Transform3DComp{});
+            // auto* gpu = ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
+            auto* target=new ColorBuffer(800,600);
+            ecs::setComponent<Camera3DComp>(this,camera2,{target,glm::radians(60.0f),1.0f/1,1,10000});
+            auto* renderSystem=new RenderSystem(this);
+            ecs::addSystem(this, renderSystem, {});
+        }
+    }
+    ~Scene2() {
+        std::cout<<"析构Scene2"<<std::endl;
     }
 };
 void DemogameApplication::init() {
     //全局数据区
 
-    scene=new Scene1();
+    scene=new Scene2();
 }

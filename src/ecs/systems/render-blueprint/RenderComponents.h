@@ -52,6 +52,10 @@ struct VertexAttrib3D {
     glm::vec2 uv;
     glm::vec4 color;
 };
+struct Mesh3D {
+    std::vector<VertexAttrib3D> vertices;
+    std::vector<glm::ivec3> indices;
+};
 struct Uniform3D:Uniform {
     ColorBuffer* texture;
     glm::mat4 mvpMatrix;
@@ -60,14 +64,13 @@ struct Uniform3D:Uniform {
     }
 };
 struct Camera3DComp {
-    float captureWidth;
-    float captureHeight;
-    float captureZ;
     ColorBuffer* target;
-};
-struct Mesh3D {
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::ivec3> indices;
+    //垂直视场角
+    float fov;
+    //视锥宽高比
+    float a;
+    float nearZ;
+    float farZ;
 };
 struct Drawable3DFlag {
     int z_order = 0;

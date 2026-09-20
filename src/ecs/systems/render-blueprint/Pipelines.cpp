@@ -47,7 +47,8 @@ VertexShaderOutput *Default3DPipeline::vertexShader(const std::any &in, const Un
     auto vert = std::any_cast<VertexAttrib3D>(in);
     auto* uniform=(Uniform3D*)uniformBase;
     //把顶点从模型空间换到裁剪空间直接到ndc空间
-    glm::vec4 ndcPos = uniform ->mvpMatrix * glm::vec4(vert.pos.x, vert.pos.y,vert.pos.z, 1.0f);
+    glm::vec4 vScreenPos = uniform ->mvpMatrix * glm::vec4(vert.pos.x, vert.pos.y,vert.pos.z, 1.0f);
+    glm::vec4 ndcPos={vScreenPos.x/vScreenPos.w,vScreenPos.y/vScreenPos.w,vScreenPos.z/vScreenPos.w,1};
     out->pos={ndcPos.x, ndcPos.y, ndcPos.z,ndcPos.w};
     out->uv=glm::vec2(vert.uv.x, vert.uv.y);
     out->color = {1,1,1,1};

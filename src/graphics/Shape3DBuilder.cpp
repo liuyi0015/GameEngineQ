@@ -4,8 +4,8 @@
 
 #include "Shape3DBuilder.h"
 
-Mesh2D Shape3DBuilder::createCube(glm::vec3 pivot,float edge) {
-    Mesh2D mesh;
+Shape3D Shape3DBuilder::createCube(glm::vec3 pivot,float edgeLong) {
+    Shape3D mesh;
     //先左右x再上下y最后前后z
     glm::vec3 v[8]={
         {-1,-1,-1},//左下
@@ -18,7 +18,7 @@ Mesh2D Shape3DBuilder::createCube(glm::vec3 pivot,float edge) {
         {1,1, 1}
     };
     for (int i=0;i<8;i++) {
-        v[i]=v[i]*(edge/2)+pivot;
+        v[i]=v[i]*(edgeLong/2)+pivot;
         mesh.points.push_back(v[i]);
     }
     //从外面看顺时针

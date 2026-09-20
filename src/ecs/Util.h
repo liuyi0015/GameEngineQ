@@ -33,7 +33,7 @@ namespace ecs{
         try {
             return std::any_cast<T>(entityIt->second);
         } catch (const std::bad_any_cast&  err) {
-            std::cerr<<"bad_any_cast"<<err.what()<<std::endl;
+            std::cerr<<"组件转换失败"<<err.what()<<std::endl;
             return std::nullopt;
         }
     }

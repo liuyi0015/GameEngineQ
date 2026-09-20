@@ -35,18 +35,15 @@ static Uniform * collectUniform(ecs::Scene* scene,Entity entity,Entity camera) {
     auto cameraComp = ecs::getComponent<Camera3DComp>(scene, camera);
     auto cameraTransformComp=ecs::getComponent<Transform3DComp>(scene, camera);
     assert(transformComp.has_value()&&drawableFlag.has_value()&&cameraComp.has_value()&&cameraTransformComp.has_value());
-    // auto cameraWorldTransform=TransformSceneUtil::computeLocalToWorldTransform(cameraTransformComp.value(),scene);
-    // auto worldTransform = TransformSceneUtil::computeLocalToWorldTransform(transformComp.value(),scene);
-    // auto modelMatrix=Transform3DUtil::transformToMatrix(worldTransform);
-    // auto viewMatrix = Transform3DUtil::getReverseTransformToMatrix(cameraWorldTransform);
-    int clipW=cameraComp->captureWidth;
-    int clipH=cameraComp->captureHeight;
-    auto projectMatrix=glm::mat4(
-        );
-    // auto mvpMatrix=projectMatrix*viewMatrix*modelMatrix;
+    auto cameraWorldTransform=TransformSceneUtil::computeLocalToWorldTransform(cameraTransformComp.value(),scene);
+    auto worldTransform = TransformSceneUtil::computeLocalToWorldTransform(transformComp.value(),scene);
+    auto modelMatrix=Transform3DUtil::transformToMatrix(worldTransform);
+    auto viewMatrix = Transform3DUtil::getReverseTransformToMatrix(cameraWorldTransform);
+    auto projectMatrix=Transform3DUtil::matProject(cameraComp->fov,cameraComp->a,cameraComp->nearZ,cameraComp->farZ);
+    auto mvpMatrix=projectMatrix*viewMatrix*modelMatrix;
     auto texture= ResourceManager::getInstance().getSurfaceCache().get(drawableFlag.value().material.texResourceId);
     auto* uniform=new Uniform3D();
-    // uniform->mvpMatrix=mvpMatrix;
+    uniform->mvpMatrix=mvpMatrix;
     if (texture!=nullptr) {
         uniform->texture=new ColorBuffer(texture);
     }
@@ -54,6 +51,7 @@ static Uniform * collectUniform(ecs::Scene* scene,Entity entity,Entity camera) {
     return uniform;
 }
 void Render3DProcess::uploadData() {
+    if (ecs::searchEntity<Camera3DComp>(scene).empty())return;
     Entity camera=ecs::searchEntity<Camera3DComp>(scene)[0];
 
     for (const auto entity:ecs::getEntities<Drawable3DFlag>(scene)) {
@@ -78,6 +76,7 @@ void Render3DProcess::uploadData() {
 
 void Render3DProcess::draw() {
     //目前只拿第一个摄像机
+    if (ecs::searchEntity<Camera3DComp>(scene).empty())return;
     Entity camera=ecs::searchEntity<Camera3DComp>(scene)[0];
     ColorBuffer* target=ecs::getComponent<Camera3DComp>(scene,camera).value().target;
     //按pipeline分组排序
