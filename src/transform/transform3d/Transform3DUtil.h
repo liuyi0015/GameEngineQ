@@ -1,0 +1,20 @@
+//
+// Created by XL0002 on 2026/9/16.
+//
+
+#ifndef GAMEENGINEQ_TRANSFORM3DUTIL_H
+#define GAMEENGINEQ_TRANSFORM3DUTIL_H
+#include "Transform3dComponents.h"
+#include "glm/fwd.hpp"
+
+
+class Transform3DUtil {
+public:
+
+    static glm::mat4 transformToMatrix(Transform3D worldTransform);
+    static Transform3D matrixToTransform(glm::mat4 matrix) ;
+    static glm::mat4 getReverseTransformToMatrix(const Transform3D & transform);
+};
+
+
+#endif //GAMEENGINEQ_TRANSFORM3DUTIL_H

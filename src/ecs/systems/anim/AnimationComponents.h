@@ -8,10 +8,16 @@
 
 #include "SDL3_image/SDL_image.h"
 #include <vector>
-struct FrameAnimatorFlag {
+struct FrameAnimationFlag {
     std::string animId;
-    bool loop;
     int counter=0;
+
+    bool loop;
+    double timer=0;
+};
+struct AnimationFlag {
+
+    bool loop=true;
     double timer=0;
 };
 #endif //GAMEENGINE_ANIMATIONCOMPONENTS_H

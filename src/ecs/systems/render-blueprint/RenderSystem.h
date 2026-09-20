@@ -6,9 +6,8 @@
 #define GAMEENGINEQ_RENDERSYSTEM_H
 #include "Render2DProcess.h"
 #include "RenderCompositorProcess.h"
-#include "../../core/ecs/System.h"
-#include "../../core/Context.hpp"
-#include "../../soft-render/GpuSimulator.h"
+#include "../../System.h"
+#include "../../../soft-render/GpuSimulator.h"
 
 class RenderSystem: public ecs::System {
 private:

@@ -8,9 +8,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../../../core/ecs/System.h"
+#include "../../../System.h"
 #include "box2d/id.h"
-#include "../../../core/ecs/Scene.h"
+#include "../../../Scene.h"
 #include "box2d/types.h"
 
 class Physics2DSystem:public ecs::System{

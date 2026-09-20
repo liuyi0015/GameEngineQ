@@ -41,6 +41,11 @@ FetchContent_Declare(box2d
         GIT_REPOSITORY https://github.com/erincatto/box2d.git
         GIT_TAG v3.1.1)
 FetchContent_MakeAvailable(box2d)
+FetchContent_Declare(tinyobjloader
+        GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
+        GIT_TAG release
+)
+FetchContent_MakeAvailable(tinyobjloader)
 #
 #target_link_libraries(${projectname} PRIVATE box3d::box3d)
 # 链接所有依赖（动态）
@@ -51,4 +56,5 @@ target_link_libraries(${projectname} PUBLIC
         SDL3_mixer::SDL3_mixer
         box2d::box2d
         glm::glm
+        tinyobjloader_c
 )

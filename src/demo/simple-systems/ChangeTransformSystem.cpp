@@ -7,8 +7,8 @@
 #include <cassert>
 
 #include "../GameComponents.h"
-#include "../../transform/transform2d/Transform2dComponents.h"
-
+#include "../../transform/transform2d/Transform2DComponents.h"
+#include "../../ecs/util/TransformSceneUtil.h"
 void ChangeTransformSystem::onFixedUpdate(double deltaTime) {
     if (ecs::getComponent<Transform2DComp>(scene, curEntity).has_value() && ecs::getComponent<RotationFlag>(scene, curEntity).has_value()) {
         rotate(deltaTime);

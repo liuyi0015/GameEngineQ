@@ -4,17 +4,21 @@
 
 #include "Pipelines.h"
 
+#include "RenderComponents.h"
+#include "Render2DProcess.h"
+#include "RenderCompositorProcess.h"
+
 
 VertexShaderOutput *Default2DPipeline::vertexShader(const std::any& in, const Uniform *uniformBase) {
     auto out= new VertexShaderOutput();
     auto vert = std::any_cast<VertexAttrib2D>(in);
     auto* uniform=(Uniform2D*)uniformBase;
     //把顶点从模型空间换到裁剪空间直接到ndc空间
+    //列向量约定
     glm::vec3 ndcPos = uniform ->mvpMatrix * glm::vec3(vert.pos.x, vert.pos.y, 1.0f);
     out->pos={ndcPos.x, ndcPos.y, 0, 1};
     out->uv=glm::vec2(vert.uv.x, vert.uv.y);
-    glm::vec4 color={1,1,1,1};
-    out->color = color;
+    out->color = {1,1,1,1};
     return out;
 }
 
@@ -38,12 +42,33 @@ glm::vec4 Default2DPipeline::fragmentShader(const FragmentAttrib *in, const Unif
     return out;
 }
 
+VertexShaderOutput *Default3DPipeline::vertexShader(const std::any &in, const Uniform *uniformBase) {
+    auto out= new VertexShaderOutput();
+    auto vert = std::any_cast<VertexAttrib3D>(in);
+    auto* uniform=(Uniform3D*)uniformBase;
+    //把顶点从模型空间换到裁剪空间直接到ndc空间
+    glm::vec4 ndcPos = uniform ->mvpMatrix * glm::vec4(vert.pos.x, vert.pos.y,vert.pos.z, 1.0f);
+    out->pos={ndcPos.x, ndcPos.y, ndcPos.z,ndcPos.w};
+    out->uv=glm::vec2(vert.uv.x, vert.uv.y);
+    out->color = {1,1,1,1};
+    return out;
+}
+
+glm::vec4 Default3DPipeline::fragmentShader(const FragmentAttrib *in, const Uniform *uniform) {
+    glm::vec4 out;
+    out.r=in->color.r;
+    out.g=in->color.g;
+    out.b=in->color.b;
+    out.a=in->color.a;
+    return out;
+}
+
 VertexShaderOutput *ComposePipeline::vertexShader(const std::any& in, const Uniform *uniform) {
     auto out=new VertexShaderOutput();
-    auto vert=std::any_cast<VertexAttrib2D>(in);
+    auto vert=std::any_cast<VertexCompose>(in);
     out->pos={vert.pos.x,vert.pos.y,0,1};
     out->uv=vert.uv;
-    out->color=vert.color;
+    out->color={1,1,1,1};
     return out;
 }
 

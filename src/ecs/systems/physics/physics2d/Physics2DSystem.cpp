@@ -8,10 +8,10 @@
 
 #include "PhysicsComponents.h"
 #include "box2d/box2d.h"
-#include "../../../core/ecs/BaseComponents.h"
-#include "../../../Config.h"
-#include "../../transform2d/Transform2dComponents.h"
-#include "../../../core/ecs/Util.h"
+#include "../../../BaseComponents.h"
+#include "../../../../transform/transform2d/Transform2DComponents.h"
+#include "../../../Util.h"
+#include "../../../util/TransformSceneUtil.h"
 
 Physics2DSystem::~Physics2DSystem() {
     if (b2World_IsValid(worldId)) {

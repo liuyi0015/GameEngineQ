@@ -4,11 +4,9 @@
 
 #include "RenderSystem.h"
 
-#include "Pipelines.h"
-#include "Render2DProcess.h"
-#include "RenderContext.h"
-#include "../../core/ecs/Util.h"
-#include "../transform2d/Transform2dComponents.h"
+#include "RenderComponents.h"
+#include "../../Util.h"
+#include "../../../core/Context.hpp"
 
 RenderSystem::RenderSystem(ecs::Scene *scene): System(scene){
 
@@ -25,20 +23,21 @@ void RenderSystem::start() {
     renderCompositorProcess->initBuffers();
     render2dProcess->registerPipelines();
     renderCompositorProcess->registerPipelines();
-    Entity cameraEntity=ecs::searchEntity<Camera2DComp>(scene)[0];
-    ColorBuffer* target2d=ecs::getComponent<Camera2DComp>(scene,cameraEntity).value().target;
-    renderCompositorProcess->srcs.push_back(target2d);
 }
 
 
 void RenderSystem::draw() {
+    renderCompositorProcess->srcs.clear();
+    Entity cameraEntity=ecs::searchEntity<Camera2DComp>(scene)[0];
+    ColorBuffer* target2d=ecs::getComponent<Camera2DComp>(scene,cameraEntity).value().target;
+    renderCompositorProcess->srcs.push_back(target2d);
     //2d
     render2dProcess->uploadData();
     render2dProcess->draw();
     render2dProcess->endFrame();
     //3d
     //ui
-    //compositor
+    //合成器
     renderCompositorProcess->uploadData();
     renderCompositorProcess->draw();
     renderCompositorProcess->endFrame();

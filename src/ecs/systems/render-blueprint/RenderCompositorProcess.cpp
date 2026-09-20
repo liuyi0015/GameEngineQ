@@ -27,20 +27,20 @@ void RenderCompositorProcess::uploadData() {
 
     //合成器顶点：屏幕矩形
     renderContext->composeVertStart= gpu->vert_buffers[this->vert_buffer_index]->vertices.size();
-    VertexAttrib2D vert0={};
+    VertexCompose vert0={};
     //直接填ndc坐标，也是先x后y
     vert0.pos={-1,1};//左上
     vert0.uv={0,0};
     gpu->vert_buffers[this->vert_buffer_index]->vertices.push_back(vert0);
-    VertexAttrib2D vert1={};
+    VertexCompose vert1={};
     vert1.pos={1,1};//右上
     vert1.uv={1,0};
     gpu->vert_buffers[this->vert_buffer_index]->vertices.push_back(vert1);
-    VertexAttrib2D vert2={};
+    VertexCompose vert2={};
     vert2.pos={1,-1};//右下
     vert2.uv={1,1};
     gpu->vert_buffers[this->vert_buffer_index]->vertices.push_back(vert2);
-    VertexAttrib2D vert3={};
+    VertexCompose vert3={};
     vert3.pos={-1,-1};//左下
     vert3.uv={0,1};
     gpu->vert_buffers[this->vert_buffer_index]->vertices.push_back(vert3);

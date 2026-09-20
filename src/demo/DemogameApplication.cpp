@@ -4,17 +4,16 @@
 
 #include "DemogameApplication.h"
 #include "GameComponents.h"
-#include "../core/ecs/BaseComponents.h"
-#include "../transform/transform2d/Transform2dComponents.h"
-#include "../Config.h"
+#include "../ecs/BaseComponents.h"
 #include "simple-systems/ChangeTransformSystem.h"
-#include "../anim/AnimationSystem.h"
-#include "../transform/render-blueprint/Render2DComponents.h"
+#include "../ecs/systems/anim/AnimationSystem.h"
+#include "../ecs/systems/render-blueprint/RenderComponents.h"
 #include "SDL3_ttf/SDL_ttf.h"
 #include "simple-systems/PrintSystem.h"
 #include "../core/ResourceManager.hpp"
-#include "../transform/render-blueprint/RenderSystem.h"
-
+#include "../ecs/systems/render-blueprint/RenderSystem.h"
+#include "../graphics/Shape2DBuilder.h"
+#include "../ecs/util/TransformSceneUtil.h"
 // ecs::Scene *DemogameApplication::loadScene1() {
 //
 //     auto* scene=new ecs::Scene("scene1");
@@ -92,11 +91,15 @@ public:
             ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,
                 Material{"img1-pipeline",{255,255,255,255},"img1-tex"},
                 mesh});
-            // ecs::setComponent<FrameAnimatorFlag>(this,img1_entity,FrameAnimatorFlag{"anim1",true});
+            ecs::setComponent<FrameAnimationFlag>(this,img1_entity,FrameAnimationFlag{"anim1",true});
 
             ecs::setComponent<RotationFlag>(this,img1_entity,{-40.0f});
             auto* animationSystem=new AnimationSystem(this);
             ecs::addSystem(this,animationSystem,{});
+        }
+        {
+            //3d cube
+
         }
         {
             //render
@@ -104,7 +107,7 @@ public:
             Entity camera1=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,camera1, ecs::Enabled{true});
             ecs::setComponent<Transform2DComp>(this,camera1,Transform2DComp{});
-            auto* gpu = ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
+            // auto* gpu = ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
             auto* target=new ColorBuffer(800,600);
             ecs::setComponent<Camera2DComp>(this,camera1,{1200,1080,target});
 

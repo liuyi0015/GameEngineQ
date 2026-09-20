@@ -5,7 +5,7 @@
 #ifndef GAMEENGINE_ROTATIONSYSTEM_H
 #define GAMEENGINE_ROTATIONSYSTEM_H
 #include "../GameComponents.h"
-#include "../../core/ecs/MonoBehaviourSystem.h"
+#include "../../ecs/MonoBehaviourSystem.h"
 
 
 class ChangeTransformSystem : public ecs::MonoBehaviourSystem<RotationFlag> {

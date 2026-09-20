@@ -4,12 +4,12 @@
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include "core/AudioPlayer.h"
-#include "core/Application.h"
 #include "Config.h"
-#include "core/ResourceManager.hpp"
+#include "core/Application.h"
 #include "SDL3_image/SDL_image.h"
 
-// #include "DemoGame3d/DemoGameApplication.h"
+#include "core/Context.hpp"
+#include "core/EventBus.h"
 #include "demo/DemogameApplication.h"
 #include "soft-render/GpuSimulator.h"
 
@@ -42,11 +42,11 @@ static void start() {
 	// AudioPlayer::loadAndPlay("assets/2.mp3");
 	ApplicationContext::getInstance().get<Application*>("app")->start();
 }
-static void update(double deltaTime) {
-	ApplicationContext::getInstance().get<Application*>("app")->update(deltaTime);
-}
 static void fixed_update(double deltaTime) {
 	ApplicationContext::getInstance().get<Application*>("app")->fixed_update(deltaTime);
+}
+static void update(double deltaTime) {
+	ApplicationContext::getInstance().get<Application*>("app")->update(deltaTime);
 }
 static void draw() {
 	ApplicationContext::getInstance().get<Application*>("app")->draw();
@@ -155,7 +155,6 @@ static void testEvents() {
 		std::cout<<"函数外str是："<<param<<std::endl;
 	}
 }
-
 int main() {
 #if _WIN32
 	SetConsoleOutputCP(65001); // Set console to CP_UTF8
@@ -163,6 +162,5 @@ int main() {
 	init();
 	testEvents();
 	main_loop();
-	// testColorBuffer();
 	return 0;
 }

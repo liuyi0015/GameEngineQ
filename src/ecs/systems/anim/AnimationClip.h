@@ -1,0 +1,13 @@
+//
+// Created by XL0002 on 2026/9/18.
+//
+
+#ifndef GAMEENGINEQ_ANIMATIONCLIP_H
+#define GAMEENGINEQ_ANIMATIONCLIP_H
+
+
+class AnimationClip {
+};
+
+
+#endif //GAMEENGINEQ_ANIMATIONCLIP_H

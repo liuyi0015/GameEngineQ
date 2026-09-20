@@ -5,11 +5,11 @@
 #ifndef GAMEENGINE_ANIMATOR_H
 #define GAMEENGINE_ANIMATOR_H
 #include "AnimationComponents.h"
-#include "../core/ecs/MonoBehaviourSystem.h"
+#include "../../MonoBehaviourSystem.h"
 #include "SDL3/SDL_render.h"
 
 
-class AnimationSystem:public ecs::MonoBehaviourSystem<FrameAnimatorFlag>{
+class AnimationSystem:public ecs::MonoBehaviourSystem<FrameAnimationFlag>{
 protected:
 public:
     explicit AnimationSystem(ecs::Scene* scene);

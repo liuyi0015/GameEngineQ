@@ -1,17 +1,18 @@
 //
-// Created by abc17 on 2026/8/12.
+// Created by XL0002 on 2026/9/16.
 //
 
-#ifndef GAMEENGINE_RENDERCOMPOSITOR_H
-#define GAMEENGINE_RENDERCOMPOSITOR_H
-#include <vector>
+#ifndef GAMEENGINEQ_RENDER3DPROCESS_H
+#define GAMEENGINEQ_RENDER3DPROCESS_H
 
-#include "../../core/ecs/System.h"
-#include "../../soft-render/GpuSimulator.h"
-#include "../../core/Context.hpp"
+#include "../../../soft-render/GpuSimulator.h"
+#include "../../../core/Context.hpp"
+#include "../../../ecs/BaseComponents.h"
+#include "../../../ecs/System.h"
 #include "RenderContext.h"
 
-class RenderCompositorProcess{
+
+class Render3DProcess {
 private:
     ecs::Scene* scene;
     SoftGPU* gpu;
@@ -22,7 +23,7 @@ private:
     std::size_t uniform_buffer_index;
 
 public:
-    explicit RenderCompositorProcess(ecs::Scene* scene,RenderContext* renderContext,ColorBuffer* target)
+    explicit Render3DProcess(ecs::Scene* scene,RenderContext* renderContext,ColorBuffer* target)
     : scene(scene),  renderContext(renderContext),target(target){
         gpu = ApplicationContext::getInstance().get<SoftGPU *>("mygpu");
     }
@@ -37,4 +38,4 @@ public:
 };
 
 
-#endif //GAMEENGINE_RENDERCOMPOSITOR_H
+#endif //GAMEENGINEQ_RENDER3DPROCESS_H

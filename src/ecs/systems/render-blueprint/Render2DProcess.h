@@ -6,12 +6,11 @@
 #define GAMEENGINE_RENDERSYSTEM_H
 #include <utility>
 
-#include "../../soft-render/GpuSimulator.h"
-#include "../../core/Context.hpp"
-#include "../../core/ecs/BaseComponents.h"
-#include "../../core/ecs/System.h"
+#include "../../../soft-render/GpuSimulator.h"
+#include "../../../core/Context.hpp"
+#include "../../../ecs/BaseComponents.h"
+#include "../../../ecs/System.h"
 #include "RenderContext.h"
-
 
 class Render2DProcess{
 private:

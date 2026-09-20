@@ -8,12 +8,13 @@
 #include <cassert>
 
 #include "Pipelines.h"
-#include "Render2DComponents.h"
-#include "../../core/ResourceManager.hpp"
-#include "../../core/ecs/Util.h"
-#include "../../soft-render/GpuSimulator.h"
-#include "../transform2d/Transform2dComponents.h"
-#include "../transform2d/TransformUtil.h"
+#include "RenderComponents.h"
+#include "../../../core/ResourceManager.hpp"
+#include "../../../ecs/Util.h"
+#include "../../../soft-render/GpuSimulator.h"
+#include "../../../transform/transform2d/Transform2DComponents.h"
+#include "../../util/TransformSceneUtil.h"
+#include "../../../transform/transform2d/Transform2DUtil.h"
 
 void Render2DProcess::initBuffers() {
     gpu->vert_buffers.push_back(new VertexBuffer());
@@ -28,7 +29,7 @@ void Render2DProcess::registerPipelines() {
 
     //就用默认的
     auto pipeline=new Default2DPipeline();
-    gpu->pipelines["default_pipeline"]=pipeline;
+    gpu->pipelines["2d_pipeline"]=pipeline;
 }
 
 //渲染蓝图里唯一依赖transform的函数，但是又不好提出去，怪怪的
@@ -38,10 +39,10 @@ static Uniform * collectUniform(ecs::Scene* scene,Entity entity,Entity camera) {
     auto cameraComp = ecs::getComponent<Camera2DComp>(scene, camera);
     auto cameraTransformComp=ecs::getComponent<Transform2DComp>(scene, camera);
     assert(transformComp.has_value()&&drawableFlag.has_value()&&cameraComp.has_value()&&cameraTransformComp.has_value());
-    auto cameraWorldTransform=TransformUtil::computeLocalToWorldTransform(cameraTransformComp.value(),scene);
-    auto worldTransform = TransformUtil::computeLocalToWorldTransform(transformComp.value(),scene);
-    auto modelMatrix=TransformUtil::transformToMatrix(worldTransform);
-    auto viewMatrix = TransformUtil::getReverseTransformToMatrix(cameraWorldTransform);
+    auto cameraWorldTransform=TransformSceneUtil::computeLocalToWorldTransform(cameraTransformComp.value(),scene);
+    auto worldTransform = TransformSceneUtil::computeLocalToWorldTransform(transformComp.value(),scene);
+    auto modelMatrix=Transform2DUtil::transformToMatrix(worldTransform);
+    auto viewMatrix = Transform2DUtil::getReverseTransformToMatrix(cameraWorldTransform);
     int clipW=cameraComp->captureWidth;
     int clipH=cameraComp->captureHeight;
     auto projectMatrix=glm::mat3(
@@ -49,6 +50,7 @@ static Uniform * collectUniform(ecs::Scene* scene,Entity entity,Entity camera) {
         0,2.0f/clipH,0,
         0,0,1
         );//没有投影但要坐标归一化
+    //列向量约定
     auto mvpMatrix=projectMatrix*viewMatrix*modelMatrix;
     auto texture= ResourceManager::getInstance().getSurfaceCache().get(drawableFlag.value().material.texResourceId);
     auto* uniform=new Uniform2D();
@@ -101,7 +103,7 @@ void Render2DProcess::draw() {
     //绑定渲染目标
     RenderPass render_pass(target,this->vert_buffer_index,this->index_buffer_index,this->uniform_buffer_index);
     //绑定渲染管线 todo 未分组
-    render_pass.cur_pipeline=gpu->pipelines["default_pipeline"];
+    render_pass.cur_pipeline=gpu->pipelines["2d_pipeline"];
 
     target->clear({0,0,0,1});//黑屏时调成红色用来debug
     //顶点分组
