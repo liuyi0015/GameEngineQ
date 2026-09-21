@@ -43,7 +43,6 @@ namespace ecs{
         return true;
     }
     static std::vector<Entity> getEntities(Scene* scene) {
-        // todo ?临时变量作用域结束被回收了吧
         std::unordered_set<Entity> entitySet;
         for (auto& [typeId, ceMap] : scene->ce_storage) {
             //所有带该组件的实体
@@ -55,7 +54,6 @@ namespace ecs{
     }
     template<typename ComponentType>
     static std::vector<Entity> getEntities(Scene* scene) {
-        // todo ?临时变量作用域结束被回收了吧
         std::unordered_set<Entity> entitySet;
           for (auto& [entity, componentVal] : scene->ce_storage[typeid(ComponentType)]) {
               entitySet.insert(entity);

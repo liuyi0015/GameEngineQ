@@ -2,3 +2,4 @@ logs/**
 .idea/**
 third-party/**
 required-dlls/**
+.gitignore

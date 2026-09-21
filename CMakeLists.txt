@@ -15,11 +15,10 @@ add_executable(${projectname}
 )
 
 # 添加其他第三方库（有Cmake配置文件）
-# 记得要先执行库里的ps1脚本
-# add之前要先设好参数，即：使用ttf默认的字体库
-set(SDLTTF_VENDORED ON)
-
 add_subdirectory(third-party/SDL3-3.4.0 EXCLUDE_FROM_ALL)
+# 记得要先执行库里的ps1脚本
+# add之前要先设好的参数，即：使用ttf默认的字体库
+set(SDLTTF_VENDORED ON)
 add_subdirectory(third-party/SDL3_ttf-3.2.2 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/SDL3_image-3.2.6 EXCLUDE_FROM_ALL)
 add_subdirectory(third-party/SDL3_mixer-3.2.4 EXCLUDE_FROM_ALL)
