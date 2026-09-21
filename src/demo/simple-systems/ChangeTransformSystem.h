@@ -4,7 +4,7 @@
 
 #ifndef GAMEENGINE_ROTATIONSYSTEM_H
 #define GAMEENGINE_ROTATIONSYSTEM_H
-#include "../GameComponents.h"
+#include "GameComponents.h"
 #include "../../ecs/MonoBehaviourSystem.h"
 
 

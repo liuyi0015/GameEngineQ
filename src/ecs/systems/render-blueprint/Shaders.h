@@ -8,20 +8,20 @@
 #include "../../../soft-render/GpuSimulator.h"
 
 
-class Default2DPipeline:public IPipeline {
-protected:
+class Default2DShader:public IShader {
+public:
     VertexShaderOutput* vertexShader(const std::any& in, const Uniform* uniform) override;
     glm::vec4 fragmentShader(const FragmentAttrib* in, const Uniform* uniform) override;
 };
 
-class Default3DPipeline:public IPipeline {
-protected:
+class Default3DShader:public IShader {
+public:
     VertexShaderOutput* vertexShader(const std::any& in, const Uniform* uniform) override;
     glm::vec4 fragmentShader(const FragmentAttrib* in, const Uniform* uniform) override;
 };
 
-class ComposePipeline:public IPipeline {
-protected:
+class ComposeShader:public IShader {
+public:
     VertexShaderOutput* vertexShader(const std::any& in, const Uniform* uniform) override;
     glm::vec4 fragmentShader(const FragmentAttrib* in, const Uniform* uniform) override;
 };

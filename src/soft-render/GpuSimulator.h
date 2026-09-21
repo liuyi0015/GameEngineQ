@@ -100,15 +100,11 @@ struct FragmentAttrib {
     glm::vec2 uv;
 };
 
-class IPipeline {
-protected:
-    virtual ~IPipeline() = default;
+class IShader {
+public:
+    virtual ~IShader() = default;
     virtual VertexShaderOutput* vertexShader(const std::any& in, const Uniform* uniform)=0;
     virtual glm::vec4 fragmentShader(const FragmentAttrib* in, const Uniform* uniform)=0;
-public:
-//三角形相互独立，索引需要有序，底部先画的在前面
-    void run(const std::vector<std::any> &verts, const std::vector<glm::ivec3> &indices,
-             const Uniform *uniform, ColorBuffer *target);
 };
 struct VertexBuffer{
     std::vector<std::any> vertices;
@@ -125,7 +121,7 @@ public:
     const unsigned long long vert_buffer_offset;
     const unsigned long long index_buffer_offset;
     const unsigned long long uniform_buffer_offset;
-    IPipeline* cur_pipeline=nullptr;
+    IShader* cur_shader=nullptr;
     RenderPass(ColorBuffer* target,unsigned long long vert_buffer_offset,unsigned long long index_buffer_offset,
         unsigned long long uniform_buffer_offset):cur_target(target),vert_buffer_offset(vert_buffer_offset),
     index_buffer_offset(index_buffer_offset),uniform_buffer_offset(uniform_buffer_offset){};
@@ -146,7 +142,7 @@ public:
     };
     ColorBuffer* swapchain_texture;
     std::unordered_map<std::string,ColorBuffer*> render_targets;
-    std::unordered_map<std::string,IPipeline*> pipelines;
+    std::unordered_map<std::string,IShader*> pipelines;
     std::vector<VertexBuffer*> vert_buffers;
     std::vector<IndiceBuffer*> index_buffers;
     std::vector<UniformBuffer*>uniform_buffers;

@@ -3,7 +3,7 @@
 //
 
 #include "DemogameApplication.h"
-#include "GameComponents.h"
+#include "simple-systems/GameComponents.h"
 #include "../ecs/BaseComponents.h"
 #include "simple-systems/ChangeTransformSystem.h"
 #include "../ecs/systems/anim/AnimationSystem.h"
@@ -126,7 +126,7 @@ public:
         {
             Entity cube=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,cube, ecs::Enabled{true});
-            ecs::setComponent<Transform3DComp>(this,cube,Transform3DComp{});
+            ecs::setComponent<Transform3DComp>(this,cube,Transform3DComp{{{0,0,-5},{45,45,45},{100,100,100}}});
             Shape3D shape=Shape3DBuilder::createCube();
             Mesh3D mesh;
             for (auto& point : shape.points) {
@@ -156,7 +156,7 @@ public:
             ecs::setComponent<Transform3DComp>(this,camera2,Transform3DComp{});
             // auto* gpu = ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
             auto* target=new ColorBuffer(800,600);
-            ecs::setComponent<Camera3DComp>(this,camera2,{target,glm::radians(60.0f),1.0f/1,1,10000});
+            ecs::setComponent<Camera3DComp>(this,camera2,{target,glm::radians(60.0f),1.0f/1,-1,-1000});
             auto* renderSystem=new RenderSystem(this);
             ecs::addSystem(this, renderSystem, {});
         }

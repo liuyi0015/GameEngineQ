@@ -2,14 +2,14 @@
 // Created by abc17 on 2026/9/6.
 //
 
-#include "Pipelines.h"
+#include "Shaders.h"
 
 #include "RenderComponents.h"
 #include "Render2DProcess.h"
 #include "RenderCompositorProcess.h"
 
 
-VertexShaderOutput *Default2DPipeline::vertexShader(const std::any& in, const Uniform *uniformBase) {
+VertexShaderOutput *Default2DShader::vertexShader(const std::any& in, const Uniform *uniformBase) {
     auto out= new VertexShaderOutput();
     auto vert = std::any_cast<VertexAttrib2D>(in);
     auto* uniform=(Uniform2D*)uniformBase;
@@ -22,7 +22,7 @@ VertexShaderOutput *Default2DPipeline::vertexShader(const std::any& in, const Un
     return out;
 }
 
-glm::vec4 Default2DPipeline::fragmentShader(const FragmentAttrib *in, const Uniform *uniformBase) {
+glm::vec4 Default2DShader::fragmentShader(const FragmentAttrib *in, const Uniform *uniformBase) {
     glm::vec4 out;
     auto* uniform=(Uniform2D*)uniformBase;
     if (uniform->texture!=nullptr) {
@@ -42,7 +42,7 @@ glm::vec4 Default2DPipeline::fragmentShader(const FragmentAttrib *in, const Unif
     return out;
 }
 
-VertexShaderOutput *Default3DPipeline::vertexShader(const std::any &in, const Uniform *uniformBase) {
+VertexShaderOutput *Default3DShader::vertexShader(const std::any &in, const Uniform *uniformBase) {
     auto out= new VertexShaderOutput();
     auto vert = std::any_cast<VertexAttrib3D>(in);
     auto* uniform=(Uniform3D*)uniformBase;
@@ -55,7 +55,7 @@ VertexShaderOutput *Default3DPipeline::vertexShader(const std::any &in, const Un
     return out;
 }
 
-glm::vec4 Default3DPipeline::fragmentShader(const FragmentAttrib *in, const Uniform *uniform) {
+glm::vec4 Default3DShader::fragmentShader(const FragmentAttrib *in, const Uniform *uniform) {
     glm::vec4 out;
     out.r=in->color.r;
     out.g=in->color.g;
@@ -64,7 +64,7 @@ glm::vec4 Default3DPipeline::fragmentShader(const FragmentAttrib *in, const Unif
     return out;
 }
 
-VertexShaderOutput *ComposePipeline::vertexShader(const std::any& in, const Uniform *uniform) {
+VertexShaderOutput *ComposeShader::vertexShader(const std::any& in, const Uniform *uniform) {
     auto out=new VertexShaderOutput();
     auto vert=std::any_cast<VertexCompose>(in);
     out->pos={vert.pos.x,vert.pos.y,0,1};
@@ -73,7 +73,7 @@ VertexShaderOutput *ComposePipeline::vertexShader(const std::any& in, const Unif
     return out;
 }
 
-glm::vec4 ComposePipeline::fragmentShader(const FragmentAttrib* in, const Uniform *uniformBase) {
+glm::vec4 ComposeShader::fragmentShader(const FragmentAttrib* in, const Uniform *uniformBase) {
     glm::vec4 out;
     auto* uniform=(UniformCompositor*)uniformBase;
     //混合

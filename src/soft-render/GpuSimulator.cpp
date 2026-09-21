@@ -8,14 +8,15 @@
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_surface.h"
 #include "../graphics/Shape2DBuilder.h"
+#include "../transform/transform3d/Transform3DUtil.h"
 
 
-void IPipeline::run(const std::vector<std::any>& verts, const std::vector<glm::ivec3> &indices,
-                    const Uniform *uniform,ColorBuffer* const target) {
+static void runPipeline(const std::vector<std::any>& verts, const std::vector<glm::ivec3> &indices,
+                        const Uniform *uniform,ColorBuffer* const target,IShader* shader) {
     //顶点着色
     VertexShaderOutput* vert_outs[verts.size()];
     for (int i = 0; i < verts.size(); ++i) {
-        vert_outs[i] = vertexShader(verts[i],uniform);
+        vert_outs[i] = shader->vertexShader(verts[i],uniform);
     }
     //光栅化
     //渲染管线可能在绘制中途工作，不能清空渲染目标
@@ -23,10 +24,10 @@ void IPipeline::run(const std::vector<std::any>& verts, const std::vector<glm::i
         auto vert_out0=*vert_outs[indices[k][0]];
         auto vert_out1=*vert_outs[indices[k][1]];
         auto vert_out2=*vert_outs[indices[k][2]];
-        //顶点视口变换，除了缩放，还要转换为屏幕坐标系
-        glm::vec2 t0={(vert_out0.pos.x/2.0+0.5)*target->width,(0.5-vert_out0.pos.y/2.0)*target->height};
-        glm::vec2 t1={(vert_out1.pos.x/2.0+0.5)*target->width,(0.5-vert_out1.pos.y/2.0)*target->height};
-        glm::vec2 t2={(vert_out2.pos.x/2.0+0.5)*target->width,(0.5-vert_out2.pos.y/2.0)*target->height};
+        //顶点视口变换，除了缩放，还要转换为屏幕坐标系，忽略z值
+        glm::vec2 t0=vert_out0.pos*Transform3DUtil::matViewport(target->width*1.0f,target->height*1.0f);
+        glm::vec2 t1=vert_out1.pos*Transform3DUtil::matViewport(target->width*1.0f,target->height*1.0f);
+        glm::vec2 t2=vert_out2.pos*Transform3DUtil::matViewport(target->width*1.0f,target->height*1.0f);
         PointTriangle2D triangle{t0,t1,t2};
 
         for (int i=0;i<target->width;i++) {
@@ -49,7 +50,7 @@ void IPipeline::run(const std::vector<std::any>& verts, const std::vector<glm::i
                     //uv插值
                     frag.uv=w0*vert_out0.uv+w1*vert_out1.uv+w2*vert_out2.uv;
 
-                    target->set(i,j,fragmentShader(&frag,uniform));
+                    target->set(i,j,shader->fragmentShader(&frag,uniform));
                 }
             }
         }
@@ -67,10 +68,10 @@ void SoftGPU::drawcall(const RenderPass& render_pass, unsigned long long triangl
         glm::ivec3 triangle={value.x+vert_offset,value.y+vert_offset,value.z+vert_offset};
         triangles.push_back(triangle);
     }
-    IPipeline* pipeline=render_pass.cur_pipeline;
+    IShader* shader=render_pass.cur_shader;
     Uniform* uniform=uniform_buffers[render_pass.uniform_buffer_offset]->uniforms[uniform_offset];
     ColorBuffer* target=render_pass.cur_target;
-    pipeline->run(vert_buffers[render_pass.vert_buffer_offset]->vertices,triangles,uniform,target);
+    runPipeline(vert_buffers[render_pass.vert_buffer_offset]->vertices,triangles,uniform,target,shader);
     // triangle_offset+=triangle_count;
 }
 

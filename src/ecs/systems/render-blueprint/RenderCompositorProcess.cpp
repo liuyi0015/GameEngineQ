@@ -4,12 +4,12 @@
 
 #include "RenderCompositorProcess.h"
 
-#include "Pipelines.h"
+#include "Shaders.h"
 
 
 void RenderCompositorProcess::registerPipelines() {
 
-    auto pipeline=new ComposePipeline();
+    auto pipeline=new ComposeShader();
     gpu->pipelines["compose_pipeline"]=pipeline;
 }
 
@@ -63,7 +63,7 @@ void RenderCompositorProcess::draw() {
     target->clear();
 
     RenderPass compose_render_pass{gpu->swapchain_texture,this->vert_buffer_index,this->index_buffer_index,this->uniform_buffer_index};
-    compose_render_pass.cur_pipeline=gpu->pipelines["compose_pipeline"];
+    compose_render_pass.cur_shader=gpu->pipelines["compose_pipeline"];
 
     gpu->drawcall(compose_render_pass,renderContext->composeIndexStart,2,renderContext->composeVertStart,0);
 }

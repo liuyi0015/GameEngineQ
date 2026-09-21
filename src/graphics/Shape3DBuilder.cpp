@@ -25,21 +25,21 @@ Shape3D Shape3DBuilder::createCube(glm::vec3 pivot,float edgeLong) {
     //前面
     mesh.indices.push_back({0,2,3});
     mesh.indices.push_back({0,3,1});
-    //后面todo
-    mesh.indices.push_back({4,6,7});
-    mesh.indices.push_back({4,7,5});
+    //后面
+    mesh.indices.push_back({5,7,6});
+    mesh.indices.push_back({5,6,4});
     //上面
     mesh.indices.push_back({2,6,7});
     mesh.indices.push_back({2,7,3});
     //下面
-    mesh.indices.push_back({0,4,5});
-    mesh.indices.push_back({0,5,1});
+    mesh.indices.push_back({4,0,1});
+    mesh.indices.push_back({4,1,5});
     //左面
     mesh.indices.push_back({4,6,2});
     mesh.indices.push_back({4,2,0});
     //右面
-    mesh.indices.push_back({0,2,3});
-    mesh.indices.push_back({0,2,3});
+    mesh.indices.push_back({1,3,7});
+    mesh.indices.push_back({1,7,5});
 
     return mesh;
 }

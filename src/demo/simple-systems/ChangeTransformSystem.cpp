@@ -6,7 +6,7 @@
 
 #include <cassert>
 
-#include "../GameComponents.h"
+#include "GameComponents.h"
 #include "../../transform/transform2d/Transform2DComponents.h"
 #include "../../ecs/util/TransformSceneUtil.h"
 void ChangeTransformSystem::onFixedUpdate(double deltaTime) {

@@ -4,7 +4,7 @@
 
 #include "Render3DProcess.h"
 
-#include "Pipelines.h"
+#include "Shaders.h"
 #include "RenderComponents.h"
 #include "../../../ecs/Util.h"
 #include "../../../transform/transform3d/Transform3dComponents.h"
@@ -24,7 +24,7 @@ void Render3DProcess::initBuffers() {
 void Render3DProcess::registerPipelines() {
 
     //就用默认的
-    auto pipeline=new Default3DPipeline();
+    auto pipeline=new Default3DShader();
     gpu->pipelines["3d_pipeline"]=pipeline;
 }
 
@@ -94,7 +94,7 @@ void Render3DProcess::draw() {
     //绑定渲染目标
     RenderPass render_pass(target,this->vert_buffer_index,this->index_buffer_index,this->uniform_buffer_index);
     //绑定渲染管线 todo 未分组
-    render_pass.cur_pipeline=gpu->pipelines["3d_pipeline"];
+    render_pass.cur_shader=gpu->pipelines["3d_pipeline"];
 
     target->clear({0,0,0,1});//黑屏时调成红色用来debug
     //顶点分组

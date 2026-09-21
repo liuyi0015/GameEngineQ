@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cassert>
 
-#include "Pipelines.h"
+#include "Shaders.h"
 #include "RenderComponents.h"
 #include "../../../core/ResourceManager.hpp"
 #include "../../../ecs/Util.h"
@@ -28,7 +28,7 @@ void Render2DProcess::initBuffers() {
 void Render2DProcess::registerPipelines() {
 
     //就用默认的
-    auto pipeline=new Default2DPipeline();
+    auto pipeline=new Default2DShader();
     gpu->pipelines["2d_pipeline"]=pipeline;
 }
 
@@ -105,7 +105,7 @@ void Render2DProcess::draw() {
     //绑定渲染目标
     RenderPass render_pass(target,this->vert_buffer_index,this->index_buffer_index,this->uniform_buffer_index);
     //绑定渲染管线 todo 未分组
-    render_pass.cur_pipeline=gpu->pipelines["2d_pipeline"];
+    render_pass.cur_shader=gpu->pipelines["2d_pipeline"];
 
     target->clear({0,0,0,1});//黑屏时调成红色用来debug
     //顶点分组

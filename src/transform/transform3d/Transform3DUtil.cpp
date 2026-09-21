@@ -52,15 +52,40 @@ static glm::mat4 matTranslate(float x, float y, float z) {
         );
     return result;
 }
-
-glm::mat4 Transform3DUtil::matProject(float fov,float a, float n, float f) {
-    glm::mat4 result=glm::mat4(
-        1/(a*glm::tan(fov/2)),0,0,0,
-        0,1/glm::tan(fov/2),0,0,
-        0,0,f/(n-f), -f*n/(f-n),
+//右手系，看向-z所以n>f
+glm::mat4 Transform3DUtil::matProject(float fovY,float aspect, float n, float f) {
+    float t=n*glm::tan(fovY/2);//上top
+    float b=-t;//下bottom
+    float r=t*aspect;//左
+    float l=-r;//右
+    //平移
+    float cx=(l+r)/2;
+    float cy=(t+b)/2;
+    float cz=(n+f)/2;
+    glm::mat4 orthoMoveMat=glm::mat4(
+        1,0,0,-cx,
+        0,1,0,-cy,
+        0,0,1,-cz,
+        0,0,0,1
+        );
+    //缩放
+    glm::mat4 orthoScaleMat=glm::mat4(
+        2/(r-l),0,0,0,
+        0,2/(t-b),0,0,
+        0,0,2/(n-f),0,
+        0,0,0,1
+        );
+    //正交先平移再缩放
+    glm::mat4 orthoMatrix=orthoScaleMat*orthoMoveMat;
+    //挤压
+    glm::mat4 squeezeMat=glm::mat4(
+        1,0,0,0,
+        0,1,0,0,
+        0,0,2/(n-f), (f+n)/(n-f),
         0,0,1,0
         );
-    return result;
+    //先挤压再正交
+    return orthoMatrix*squeezeMat;
 }
 glm::mat4 Transform3DUtil::matViewport(float W, float H) {
     //注意缩放H的负号，表示y轴反向
