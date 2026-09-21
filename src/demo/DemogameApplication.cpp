@@ -126,7 +126,8 @@ public:
         {
             Entity cube=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,cube, ecs::Enabled{true});
-            ecs::setComponent<Transform3DComp>(this,cube,Transform3DComp{{{0,0,-5},{45,45,45},{100,100,100}}});
+            ecs::setComponent<Transform3DComp>(this,cube,Transform3DComp{{{0,0,-5},
+                {30,45,30},{100,100,100}}});
             Shape3D shape=Shape3DBuilder::createCube();
             Mesh3D mesh;
             for (auto& point : shape.points) {

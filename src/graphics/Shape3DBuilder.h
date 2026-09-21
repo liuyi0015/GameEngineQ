@@ -13,7 +13,7 @@ struct Shape3D {
 
 class Shape3DBuilder {
 public:
-    static Shape3D createCube(glm::vec3 pivot={0,0,0}, float edgeLong=1);
+    static Shape3D createCube(glm::vec3 pivot={0,0,0}, float edgeLong=2);
 
 };
 

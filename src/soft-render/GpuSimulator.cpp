@@ -12,7 +12,7 @@
 
 
 static void runPipeline(const std::vector<std::any>& verts, const std::vector<glm::ivec3> &indices,
-                        const Uniform *uniform,ColorBuffer* const target,IShader* shader) {
+                        const Uniform *uniform,ColorBuffer* const target,IShader* shader,bool edgeMode) {
     //顶点着色
     VertexShaderOutput* vert_outs[verts.size()];
     for (int i = 0; i < verts.size(); ++i) {
@@ -44,6 +44,15 @@ static void runPipeline(const std::vector<std::any>& verts, const std::vector<gl
                     float w0=triangle0.area()/triangle.area();
                     float w1=triangle1.area()/triangle.area();
                     float w2=triangle2.area()/triangle.area();
+                    if (edgeMode) {
+
+                        // 只保留边缘：任一重心坐标很接近 0，就认为在边上
+                        bool isEdge = (w0 < 0.02f || w1 < 0.02f || w2 < 0.02f);
+
+                        if (isEdge) {
+                            target->set(i, j, {0, 1, 1, 1}); // 线框颜色
+                        }
+                    }else {
 
                     //颜色插值
                     frag.color=w0*vert_out0.color+w1*vert_out1.color+w2*vert_out2.color;
@@ -51,6 +60,7 @@ static void runPipeline(const std::vector<std::any>& verts, const std::vector<gl
                     frag.uv=w0*vert_out0.uv+w1*vert_out1.uv+w2*vert_out2.uv;
 
                     target->set(i,j,shader->fragmentShader(&frag,uniform));
+                    }
                 }
             }
         }
@@ -71,7 +81,7 @@ void SoftGPU::drawcall(const RenderPass& render_pass, unsigned long long triangl
     IShader* shader=render_pass.cur_shader;
     Uniform* uniform=uniform_buffers[render_pass.uniform_buffer_offset]->uniforms[uniform_offset];
     ColorBuffer* target=render_pass.cur_target;
-    runPipeline(vert_buffers[render_pass.vert_buffer_offset]->vertices,triangles,uniform,target,shader);
+    runPipeline(vert_buffers[render_pass.vert_buffer_offset]->vertices,triangles,uniform,target,shader,render_pass.edgeMode);
     // triangle_offset+=triangle_count;
 }
 

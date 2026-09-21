@@ -95,6 +95,7 @@ void Render3DProcess::draw() {
     RenderPass render_pass(target,this->vert_buffer_index,this->index_buffer_index,this->uniform_buffer_index);
     //绑定渲染管线 todo 未分组
     render_pass.cur_shader=gpu->pipelines["3d_pipeline"];
+    render_pass.edgeMode=true;//线框模式
 
     target->clear({0,0,0,1});//黑屏时调成红色用来debug
     //顶点分组

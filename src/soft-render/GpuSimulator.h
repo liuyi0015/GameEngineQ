@@ -122,9 +122,11 @@ public:
     const unsigned long long index_buffer_offset;
     const unsigned long long uniform_buffer_offset;
     IShader* cur_shader=nullptr;
+    bool edgeMode=false;
+
     RenderPass(ColorBuffer* target,unsigned long long vert_buffer_offset,unsigned long long index_buffer_offset,
-        unsigned long long uniform_buffer_offset):cur_target(target),vert_buffer_offset(vert_buffer_offset),
-    index_buffer_offset(index_buffer_offset),uniform_buffer_offset(uniform_buffer_offset){};
+               unsigned long long uniform_buffer_offset):cur_target(target),vert_buffer_offset(vert_buffer_offset),
+                                                         index_buffer_offset(index_buffer_offset),uniform_buffer_offset(uniform_buffer_offset){};
 };
 /**
  * 只画三角形，每个独立占3顶点
