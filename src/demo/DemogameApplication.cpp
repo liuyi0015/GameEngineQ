@@ -15,6 +15,7 @@
 #include "../graphics/Shape2DBuilder.h"
 #include "../ecs/util/TransformSceneUtil.h"
 #include "../graphics/Shape3DBuilder.h"
+#include "3d-systems/ChangeTransform3DSystem.h"
 // ecs::Scene *DemogameApplication::loadScene1() {
 //
 //     auto* scene=new ecs::Scene("scene1");
@@ -124,6 +125,11 @@ class Scene2:public ecs::Scene {
 public:
     Scene2() {
         {
+
+            auto* img1=IMG_Load("assets/1.png");
+            ResourceManager::getInstance().getSurfaceCache().set("img1-tex",img1);
+        }
+        {
             Entity cube=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,cube, ecs::Enabled{true});
             ecs::setComponent<Transform3DComp>(this,cube,Transform3DComp{{{0,0,-5},
@@ -147,8 +153,12 @@ public:
             mesh.vertices[6].uv={1,1};//右下
             mesh.vertices[7].uv={0,1};//左下
             mesh.indices=shape.indices;
-            Material material=Material{"3d_pipeline",{255,255,255,255},""};
+            Material material=Material{"3d_pipeline",{255,255,255,255},"img1-tex"};
             ecs::setComponent<Drawable3DFlag>(this,cube,Drawable3DFlag{0,material,mesh});
+            //旋转
+            ecs::setComponent<Rotation3DFlag>(this,cube,Rotation3DFlag{10,10,10});
+            auto* changeTransform3dSystem=new ChangeTransform3DSystem(this);
+            ecs::addSystem(this, changeTransform3dSystem, {});
         }
         {
 

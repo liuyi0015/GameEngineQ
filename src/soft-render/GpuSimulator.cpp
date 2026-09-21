@@ -10,7 +10,20 @@
 #include "../graphics/Shape2DBuilder.h"
 #include "../transform/transform3d/Transform3DUtil.h"
 
+//深度缓存
+static float depth[10000][10000];
 
+void SoftGPU::BeginRenderPass(RenderPass render_pass) {
+    cur_render_pass=render_pass;
+    ColorBuffer* target=render_pass.cur_target;
+    target->clear({0,0,0,1});
+    //重置深度
+    for (int i=0;i<target->width;i++) {
+        for (int j=0;j<target->height;j++) {
+            depth[i][j]=1;//初始化为最大深度
+        }
+    }
+}
 static void runPipeline(const std::vector<std::any>& verts, const std::vector<glm::ivec3> &indices,
                         const Uniform *uniform,ColorBuffer* const target,IShader* shader,bool edgeMode) {
     //顶点着色
@@ -20,6 +33,7 @@ static void runPipeline(const std::vector<std::any>& verts, const std::vector<gl
     }
     //光栅化
     //渲染管线可能在绘制中途工作，不能清空渲染目标
+
     for (int k=0;k<indices.size();k++) {
         auto vert_out0=*vert_outs[indices[k][0]];
         auto vert_out1=*vert_outs[indices[k][1]];
@@ -29,7 +43,6 @@ static void runPipeline(const std::vector<std::any>& verts, const std::vector<gl
         glm::vec2 t1=vert_out1.pos*Transform3DUtil::matViewport(target->width*1.0f,target->height*1.0f);
         glm::vec2 t2=vert_out2.pos*Transform3DUtil::matViewport(target->width*1.0f,target->height*1.0f);
         PointTriangle2D triangle{t0,t1,t2};
-
         for (int i=0;i<target->width;i++) {
             for (int j=0;j<target->height;j++) {
                 //坐标统统加0.5，才是像素中心
@@ -44,13 +57,22 @@ static void runPipeline(const std::vector<std::any>& verts, const std::vector<gl
                     float w0=triangle0.area()/triangle.area();
                     float w1=triangle1.area()/triangle.area();
                     float w2=triangle2.area()/triangle.area();
+                    //深度测试
+                    float deep=w0*vert_out0.pos.z+w1*vert_out1.pos.z+w2*vert_out2.pos.z;
+                    if (deep<depth[i][j]) {
+                        depth[i][j]=deep;
+                    }else {
+                        continue;
+                    }
                     if (edgeMode) {
 
                         // 只保留边缘：任一重心坐标很接近 0，就认为在边上
-                        bool isEdge = (w0 < 0.02f || w1 < 0.02f || w2 < 0.02f);
+                        bool isEdge = (w0 < 0.01f || w1 < 0.01f || w2 < 0.02f);
 
                         if (isEdge) {
                             target->set(i, j, {0, 1, 1, 1}); // 线框颜色
+                        }else {
+                            target->set(i, j, {0, 0, 0, 1});
                         }
                     }else {
 
@@ -68,20 +90,20 @@ static void runPipeline(const std::vector<std::any>& verts, const std::vector<gl
     // target->testColorBuffer();
 }
 
-void SoftGPU::drawcall(const RenderPass& render_pass, unsigned long long triangle_offset, unsigned long long triangle_count,
+void SoftGPU::drawcall(unsigned long long triangle_offset, unsigned long long triangle_count,
     unsigned long long vert_offset,unsigned long long uniform_offset) {
     //每次都从0开始覆盖，每帧都要重新上传
     //顶点索引偏移
     std::vector<glm::ivec3> triangles;
     for (int i=triangle_offset;i<triangle_offset+triangle_count;i++) {
-        auto value = index_buffers[render_pass.index_buffer_offset]->indices[i];
+        auto value = index_buffers[cur_render_pass.index_buffer_offset]->indices[i];
         glm::ivec3 triangle={value.x+vert_offset,value.y+vert_offset,value.z+vert_offset};
         triangles.push_back(triangle);
     }
-    IShader* shader=render_pass.cur_shader;
-    Uniform* uniform=uniform_buffers[render_pass.uniform_buffer_offset]->uniforms[uniform_offset];
-    ColorBuffer* target=render_pass.cur_target;
-    runPipeline(vert_buffers[render_pass.vert_buffer_offset]->vertices,triangles,uniform,target,shader,render_pass.edgeMode);
+    IShader* shader=cur_render_pass.cur_shader;
+    Uniform* uniform=uniform_buffers[cur_render_pass.uniform_buffer_offset]->uniforms[uniform_offset];
+    ColorBuffer* target=cur_render_pass.cur_target;
+    runPipeline(vert_buffers[cur_render_pass.vert_buffer_offset]->vertices,triangles,uniform,target,shader,cur_render_pass.edgeMode);
     // triangle_offset+=triangle_count;
 }
 
@@ -104,4 +126,5 @@ void SoftGPU::present() {
     // SDL_UnlockSurface(winsur);
     SDL_DestroySurface(back_surface);
     swapchain_texture->clear();
+
 }

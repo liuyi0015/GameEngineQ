@@ -62,10 +62,14 @@ void RenderCompositorProcess::uploadData() {
 void RenderCompositorProcess::draw() {
     target->clear();
 
-    RenderPass compose_render_pass{gpu->swapchain_texture,this->vert_buffer_index,this->index_buffer_index,this->uniform_buffer_index};
+    RenderPass compose_render_pass;
+    compose_render_pass.cur_target=target;
+    compose_render_pass.vert_buffer_offset=this->vert_buffer_index;
+    compose_render_pass.index_buffer_offset=this->index_buffer_index;
+    compose_render_pass.uniform_buffer_offset=this->uniform_buffer_index;
     compose_render_pass.cur_shader=gpu->pipelines["compose_pipeline"];
-
-    gpu->drawcall(compose_render_pass,renderContext->composeIndexStart,2,renderContext->composeVertStart,0);
+    gpu->BeginRenderPass(compose_render_pass);
+    gpu->drawcall(renderContext->composeIndexStart,2,renderContext->composeVertStart,0);
 }
 
 void RenderCompositorProcess::endFrame() {

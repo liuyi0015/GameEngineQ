@@ -103,11 +103,15 @@ void Render2DProcess::draw() {
     std::stable_sort(drawableEntities.begin(), drawableEntities.end(),
                      [](const auto &a, const auto &b){ return a.first < b.first; });
     //绑定渲染目标
-    RenderPass render_pass(target,this->vert_buffer_index,this->index_buffer_index,this->uniform_buffer_index);
+    RenderPass render_pass;
+    render_pass.cur_target=target;
+    render_pass.vert_buffer_offset=this->vert_buffer_index;
+    render_pass.index_buffer_offset=this->index_buffer_index;
+    render_pass.uniform_buffer_offset=this->uniform_buffer_index;
     //绑定渲染管线 todo 未分组
     render_pass.cur_shader=gpu->pipelines["2d_pipeline"];
 
-    target->clear({0,0,0,1});//黑屏时调成红色用来debug
+    gpu->BeginRenderPass(render_pass);
     //顶点分组
     for (int i=0;i<drawableEntities.size();i++) {
         Entity entity=drawableEntities[i].second;
@@ -115,7 +119,7 @@ void Render2DProcess::draw() {
         auto indexCount=renderContext->indexCounts[entity];
         auto vertOffset=renderContext->vertOffsets[entity];
         auto uniformOffset=renderContext->uniformOffsets[entity];
-        gpu->drawcall(render_pass,indexOffset,indexCount,vertOffset,uniformOffset);
+        gpu->drawcall(indexOffset,indexCount,vertOffset,uniformOffset);
     }
 }
 

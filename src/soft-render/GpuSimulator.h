@@ -117,16 +117,12 @@ struct UniformBuffer {
 };
 struct  RenderPass {
 public:
-    ColorBuffer* const cur_target;
-    const unsigned long long vert_buffer_offset;
-    const unsigned long long index_buffer_offset;
-    const unsigned long long uniform_buffer_offset;
+    ColorBuffer* cur_target;
+    unsigned long long vert_buffer_offset;
+    unsigned long long index_buffer_offset;
+    unsigned long long uniform_buffer_offset;
     IShader* cur_shader=nullptr;
     bool edgeMode=false;
-
-    RenderPass(ColorBuffer* target,unsigned long long vert_buffer_offset,unsigned long long index_buffer_offset,
-               unsigned long long uniform_buffer_offset):cur_target(target),vert_buffer_offset(vert_buffer_offset),
-                                                         index_buffer_offset(index_buffer_offset),uniform_buffer_offset(uniform_buffer_offset){};
 };
 /**
  * 只画三角形，每个独立占3顶点
@@ -148,9 +144,12 @@ public:
     std::vector<VertexBuffer*> vert_buffers;
     std::vector<IndiceBuffer*> index_buffers;
     std::vector<UniformBuffer*>uniform_buffers;
-    void drawcall(const RenderPass &render_pass, unsigned long long triangle_offset, unsigned long long triangle_count,
+    RenderPass cur_render_pass={nullptr,0x3f3f3f3f,0x3f3f3f3f,0x3f3f3f3f};
+    void drawcall(unsigned long long triangle_offset, unsigned long long triangle_count,
                   unsigned long long vert_offset, unsigned long long uniform_offset);
     void present();
+
+    void BeginRenderPass(RenderPass render_pass);
 };
 
 #endif //GAMEENGINEQ_SOFTRENDERER_H

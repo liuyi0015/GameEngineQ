@@ -55,12 +55,23 @@ VertexShaderOutput *Default3DShader::vertexShader(const std::any &in, const Unif
     return out;
 }
 
-glm::vec4 Default3DShader::fragmentShader(const FragmentAttrib *in, const Uniform *uniform) {
+glm::vec4 Default3DShader::fragmentShader(const FragmentAttrib *in, const Uniform *uniformBase) {
     glm::vec4 out;
-    out.r=in->color.r;
-    out.g=in->color.g;
-    out.b=in->color.b;
-    out.a=in->color.a;
+    auto* uniform=(Uniform3D*)uniformBase;
+    if (uniform->texture!=nullptr) {
+        //采样
+        glm::vec4 srcColor=uniform->texture->at(in->uv.x*uniform->texture->width,(in->uv.y)*uniform->texture->height);
+        out.r=srcColor.r;
+        out.g=srcColor.g;
+        out.b=srcColor.b;
+        out.a=srcColor.a;
+        // std::cout<<in->viewPos.x<<","<<in->viewPos.y<<" uv:"<<in->uv.x<<","<<in->uv.y<<std::endl;
+    }else {
+        out.r=in->color.r;
+        out.g=in->color.g;
+        out.b=in->color.b;
+        out.a=in->color.a;
+    }
     return out;
 }
 
