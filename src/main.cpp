@@ -98,9 +98,6 @@ static int main_loop() {
     	Uint64 currentCounter = SDL_GetPerformanceCounter();
     	double deltaTime = static_cast<double>(currentCounter - lastPerformanceCounter) / static_cast<double>(performanceFrequency);
     	lastPerformanceCounter = currentCounter;
-
-    	// 将帧间隔存入全局上下文？
-    	ApplicationContext::getInstance().set("deltaTime", deltaTime);
     	//逻辑更新
     	frameTimeAccumulator += deltaTime;
     	while (frameTimeAccumulator >= config.UPDATE_INTERVAL) {

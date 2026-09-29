@@ -8,6 +8,8 @@
 
 class Application {
 public:
+    virtual ~Application() = default;
+
     virtual void init()=0;
     virtual void start()=0;
     virtual void fixed_update(double deltaTime)=0;

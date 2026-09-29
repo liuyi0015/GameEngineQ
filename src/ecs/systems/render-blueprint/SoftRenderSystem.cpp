@@ -2,25 +2,25 @@
 // Created by XL0002 on 2026/9/15.
 //
 
-#include "RenderSystem.h"
+#include "SoftRenderSystem.h"
 
 #include "Render3DProcess.h"
 #include "RenderComponents.h"
 #include "../../Util.h"
 #include "../../../core/Context.hpp"
 
-RenderSystem::RenderSystem(ecs::Scene *scene): System(scene){
+SoftRenderSystem::SoftRenderSystem(){
 
     gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
     //让其他类也可以通过名字访问target
     // gpu->render_targets[this->targetName]=target;
+}
+//场景加载时调用
+void SoftRenderSystem::start() {
     renderContext=new RenderContext();
     render2dProcess=new Render2DProcess (scene,renderContext);
     render3dProcess=new Render3DProcess(scene,renderContext);
     renderCompositorProcess=new RenderCompositorProcess (scene,renderContext,gpu->swapchain_texture);
-}
-
-void RenderSystem::start() {
     render2dProcess->initBuffers();
     render2dProcess->registerPipelines();
 
@@ -32,7 +32,7 @@ void RenderSystem::start() {
 }
 
 
-void RenderSystem::draw() {
+void SoftRenderSystem::draw() {
     renderCompositorProcess->srcs.clear();
     for (Entity camera2d:ecs::searchEntity<Camera2DComp>(scene)) {
         ColorBuffer* target=ecs::getComponent<Camera2DComp>(scene,camera2d).value().target;

@@ -11,14 +11,13 @@ namespace ecs {
 
     class System {
     public:
-        //这里只是用指针成员代替传参，普通system是scene的成员，全局system与scene独立，反正都不是包含scene
-        Scene* scene;
-        // System()=delete;
-        explicit System(Scene* scene) :
-            scene(scene) {
-        }
+        //这里只是用指针成员代替传参，system与scene独立，互不包含
+        Scene* scene=nullptr;
         virtual ~System() = default;
+        //场景加载
         virtual void start(){};
+        //场景卸载
+        virtual void end(){};
         virtual void update(double deltaTime){};
         virtual void fixed_update(double deltaTime){};
         virtual void draw(){};

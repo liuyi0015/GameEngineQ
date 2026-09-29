@@ -93,11 +93,13 @@ struct VertexShaderOutput {
     glm::vec4 pos;//x,y,深度,插值后像素的1/w
     glm::vec2 uv;
     glm::vec4 color;
+    glm::vec3 normal;
 };
 struct FragmentAttrib {
     glm::vec4 viewPos;
     glm::vec4 color;
     glm::vec2 uv;
+    glm::vec3 normal;
 };
 
 class IShader {

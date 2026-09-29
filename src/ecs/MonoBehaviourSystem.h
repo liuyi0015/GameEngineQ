@@ -18,11 +18,8 @@ namespace ecs {
             return enabled.value().value;
         }
     protected:
-        Entity curEntity;
+        Entity curEntity=-1;
     public:
-        explicit MonoBehaviourSystem(Scene* scene)
-            : System(scene), curEntity(-1) {
-        }
         void start() override {
             for (const auto entity:getEntities<TFlagComponent>(scene)) {
                 if (!checkEnabled(entity)) {
@@ -33,6 +30,16 @@ namespace ecs {
             }
         };
         virtual void onStart() {};
+        void end() override {
+            for (const auto entity:getEntities<TFlagComponent>(scene)) {
+                if (!checkEnabled(entity)) {
+                    continue;
+                }
+                curEntity=entity;
+                onEnd();
+            }
+        }
+        virtual void onEnd() {};
         void update(double deltaTime) override {
             for (const auto entity:getEntities<TFlagComponent>(scene)) {
                 if (!checkEnabled(entity)) {

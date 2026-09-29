@@ -10,7 +10,7 @@
 #include "../../System.h"
 #include "../../../soft-render/GpuSimulator.h"
 
-class RenderSystem: public ecs::System {
+class SoftRenderSystem: public ecs::System {
 private:
     SoftGPU* gpu;
     RenderContext * renderContext=nullptr;
@@ -19,7 +19,7 @@ private:
     Render3DProcess * render3dProcess=nullptr;
 
 public:
-    explicit RenderSystem(ecs::Scene* scene);
+    explicit SoftRenderSystem();
     void start() override;
     void update(double deltaTime) override{};
     void fixed_update(double deltaTime) override{};

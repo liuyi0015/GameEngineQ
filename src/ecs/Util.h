@@ -72,21 +72,25 @@ namespace ecs{
 
     struct ExecutionOrders {
         int start_order=0;
+        int end_order=0;
         int update_order=0;
         int fixed_update_order=0;
         int draw_order=0;
     };
     static SystemId addSystem(Scene* scene, System* system, const ExecutionOrders& orders) {
         SystemId si=scene->nextSystemId++;
-        scene->systemIds[si]=std::shared_ptr<System>(system);
+        scene->systemIds[si]=system;
         scene->system_start_orders.push_back({si, orders.start_order});
+        scene->system_end_orders.push_back({si,orders.end_order});
         scene->system_update_orders.push_back({si, orders.update_order});
         scene->system_fixed_update_orders.push_back({si, orders.fixed_update_order});
         scene->system_draw_orders.push_back({si, orders.draw_order});
+
+        system->scene=scene;
         return si;
     }
     static System* getSystemById(Scene* scene, const SystemId& systemId) {
-        return scene->systemIds[systemId].get();
+        return scene->systemIds[systemId];
     }
 }
 

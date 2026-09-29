@@ -51,15 +51,34 @@ struct VertexAttrib3D {
     glm::vec3 pos;//w要留下做透视除法和裁剪
     glm::vec2 uv;
     glm::vec4 color;
+    glm::vec3 normal;
 };
 struct Mesh3D {
     std::vector<VertexAttrib3D> vertices;
     std::vector<glm::ivec3> indices;
 };
 struct Uniform3D:Uniform {
-    ColorBuffer* texture;
     glm::mat4 mvpMatrix;
+    ColorBuffer* texture;
     ~Uniform3D() override {
+        delete texture;
+    }
+};
+struct DirectionalLight {
+    glm::vec3 direction;
+    glm::vec3 color;
+    float intensity;
+};
+struct UniformLight3D:Uniform {
+    glm::mat4 mvpMatrix;
+    glm::vec3 viewDirection;//视线方向
+    std::vector<DirectionalLight> lights;
+    float albedoStrength;//漫反射强度
+    float specularStrength;//高光（镜面反射）强度
+    float shininess;//光泽度
+    float ambientStrength;//环境光强度
+    ColorBuffer* texture;
+    ~UniformLight3D() override {
         delete texture;
     }
 };

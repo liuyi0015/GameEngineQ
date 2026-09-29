@@ -19,6 +19,11 @@ public:
     VertexShaderOutput* vertexShader(const std::any& in, const Uniform* uniform) override;
     glm::vec4 fragmentShader(const FragmentAttrib* in, const Uniform* uniform) override;
 };
+class BlinnPhongLight3DShader:public IShader {
+    public:
+    VertexShaderOutput* vertexShader(const std::any& in, const Uniform* uniform) override;
+    glm::vec4 fragmentShader(const FragmentAttrib* in, const Uniform* uniform) override;
+};
 
 class ComposeShader:public IShader {
 public:

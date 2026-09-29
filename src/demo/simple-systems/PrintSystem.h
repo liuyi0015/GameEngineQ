@@ -13,7 +13,7 @@ class PrintSystem:public ecs::System{
 private:
     int num;
 public:
-    PrintSystem(ecs::Scene* scene,int num) :System(scene),num(num){
+    PrintSystem(int num) :num(num){
     }
     void start() override {
             std::cout<<"printSystem num:"<<num<<std::endl;

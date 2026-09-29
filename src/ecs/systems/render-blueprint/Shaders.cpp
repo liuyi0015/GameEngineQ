@@ -52,6 +52,7 @@ VertexShaderOutput *Default3DShader::vertexShader(const std::any &in, const Unif
     out->pos={ndcPos.x, ndcPos.y, ndcPos.z,ndcPos.w};
     out->uv=glm::vec2(vert.uv.x, vert.uv.y);
     out->color = {1,1,1,1};
+    out->normal=vert.normal;
     return out;
 }
 
@@ -72,6 +73,17 @@ glm::vec4 Default3DShader::fragmentShader(const FragmentAttrib *in, const Unifor
         out.b=in->color.b;
         out.a=in->color.a;
     }
+    return out;
+}
+
+VertexShaderOutput *BlinnPhongLight3DShader::vertexShader(const std::any &in, const Uniform *uniform) {
+    auto out= new VertexShaderOutput();
+    return out;
+}
+
+glm::vec4 BlinnPhongLight3DShader::fragmentShader(const FragmentAttrib *in, const Uniform *uniform) {
+    glm::vec4 out;
+
     return out;
 }
 

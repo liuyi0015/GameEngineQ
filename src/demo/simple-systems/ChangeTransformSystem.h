@@ -10,11 +10,6 @@
 
 class ChangeTransformSystem : public ecs::MonoBehaviourSystem<RotationFlag> {
 public:
-    explicit ChangeTransformSystem(ecs::Scene* scene)
-        : ecs::MonoBehaviourSystem<RotationFlag>(scene) {
-
-    }
-
     void onStart() override{};
     void onUpdate(double deltaTime) override{};
     void onFixedUpdate(double deltaTime) override;

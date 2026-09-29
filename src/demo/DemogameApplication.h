@@ -4,12 +4,28 @@
 
 #ifndef GAMEENGINE_DEMOGAMEAPPLICATION_H
 #define GAMEENGINE_DEMOGAMEAPPLICATION_H
-#include "../ecs/EcsApplication.h"
-
-class DemogameApplication:public EcsApplication{
+#include "../core/Application.h"
+#include "../ecs/Scene.h"
+class DemogameApplication:public Application{
 private:
+    ecs::Scene* scene=nullptr;
 public:
-    void init() override;
+    ~DemogameApplication()override {
+        delete scene;
+    };
+    void init()override;
+    void start()override {
+        scene->start();
+    };
+    void fixed_update(double deltaTime)override {
+        scene->fixed_update(deltaTime);
+    };
+    void update(double deltaTime)override {
+        scene->update(deltaTime);
+    };
+    void draw()override {
+        scene->draw();
+    };
 };
 
 

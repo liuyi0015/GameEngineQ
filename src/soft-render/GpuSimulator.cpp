@@ -80,6 +80,8 @@ static void runPipeline(const std::vector<std::any>& verts, const std::vector<gl
                     frag.color=w0*vert_out0.color+w1*vert_out1.color+w2*vert_out2.color;
                     //uv插值
                     frag.uv=w0*vert_out0.uv+w1*vert_out1.uv+w2*vert_out2.uv;
+                    //法线插值
+                    frag.normal=w0*vert_out0.normal+w1*vert_out1.normal+w2*vert_out2.normal;
 
                     target->set(i,j,shader->fragmentShader(&frag,uniform));
                     }

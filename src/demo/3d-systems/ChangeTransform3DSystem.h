@@ -13,11 +13,6 @@ struct Rotation3DFlag {
 class ChangeTransform3DSystem :public ecs::MonoBehaviourSystem<Rotation3DFlag>{
 
 public:
-    explicit ChangeTransform3DSystem(ecs::Scene* scene)
-        : ecs::MonoBehaviourSystem<Rotation3DFlag>(scene) {
-
-    }
-
     void onStart() override{};
     void onUpdate(double deltaTime) override{};
     void onFixedUpdate(double deltaTime) override;

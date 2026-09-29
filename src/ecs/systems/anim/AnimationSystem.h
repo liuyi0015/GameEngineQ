@@ -12,9 +12,9 @@
 class AnimationSystem:public ecs::MonoBehaviourSystem<FrameAnimationFlag>{
 protected:
 public:
-    explicit AnimationSystem(ecs::Scene* scene);
+    explicit AnimationSystem();
 
-    ~AnimationSystem();
+    ~AnimationSystem() override;
 
     void onStart() override;
     void onUpdate(double deltaTime) override;

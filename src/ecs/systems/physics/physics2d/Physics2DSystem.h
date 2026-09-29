@@ -18,9 +18,6 @@ private:
     b2WorldId worldId{};
     std::unordered_map<Entity,b2BodyId> bodyIds;
 public:
-    explicit Physics2DSystem(ecs::Scene* scene)
-        : System(scene){
-    }
     ~Physics2DSystem()override;
     void start() override;
     void update(double deltaTime) override{};

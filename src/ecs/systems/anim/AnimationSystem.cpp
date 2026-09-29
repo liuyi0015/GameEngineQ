@@ -10,8 +10,7 @@
 #include "../render-blueprint/RenderComponents.h"
 #include "SDL3_image/SDL_image.h"
 
-AnimationSystem::AnimationSystem(ecs::Scene *scene)
-        : ecs::MonoBehaviourSystem<FrameAnimationFlag>(scene){
+AnimationSystem::AnimationSystem(){
     // auto frameAnimatorFlag=ecs::getComponent<FrameAnimatorFlag>(scene,curEntity).value();
     // auto anim=IMG_LoadAnimation(frameAnimatorFlag.path.c_str());
     // ResourceManager::getInstance().getAnimationCache().set(frameAnimatorFlag.name, anim);

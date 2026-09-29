@@ -3,6 +3,8 @@
 //
 
 #include "DemogameApplication.h"
+
+#include "tiny_obj_c.h"
 #include "simple-systems/GameComponents.h"
 #include "../ecs/BaseComponents.h"
 #include "simple-systems/ChangeTransformSystem.h"
@@ -11,7 +13,7 @@
 #include "SDL3_ttf/SDL_ttf.h"
 #include "simple-systems/PrintSystem.h"
 #include "../core/ResourceManager.hpp"
-#include "../ecs/systems/render-blueprint/RenderSystem.h"
+#include "../ecs/systems/render-blueprint/SoftRenderSystem.h"
 #include "../graphics/Shape2DBuilder.h"
 #include "../ecs/util/TransformSceneUtil.h"
 #include "../graphics/Shape3DBuilder.h"
@@ -46,16 +48,14 @@
 //     }
 class Scene1:public ecs::Scene{
 public:
-    Scene1() {
+    Scene1(PrintSystem* printSystem1,PrintSystem* printSystem2,ChangeTransformSystem* changeTransformSystem,
+        AnimationSystem* animationSystem,SoftRenderSystem* renderSystem) {
         {
             //普通system
-            auto* changeTransformSystem=new ChangeTransformSystem(this);
             ecs::addSystem(this,changeTransformSystem,{});
             //顺序test
-            auto* print_system1 = new PrintSystem(this,1);
-            ecs::addSystem(this,print_system1,{10,0,0,0});
-            auto* print_system2 = new PrintSystem(this,2);
-            ecs::addSystem(this,print_system2,{});
+            ecs::addSystem(this,printSystem1,{10,0,0,0});
+            ecs::addSystem(this,printSystem2,{});
         }
         {
             //加载资源
@@ -96,7 +96,6 @@ public:
 
             ecs::setComponent<RotationFlag>(this,img1_entity,{-40.0f});
             ecs::setComponent<FrameAnimationFlag>(this,img1_entity,FrameAnimationFlag{"anim1",0,true});
-            auto* animationSystem=new AnimationSystem(this);
             ecs::addSystem(this,animationSystem,{});
         }
         {
@@ -112,7 +111,6 @@ public:
             // ecs::setComponent<CameraInputListenerFlag>(this, camera1, {});
             // auto* cameraInputListenerSystem=new CameraInputListenerSystem(this);
             // ecs::addSystem(this,cameraInputListenerSystem,{});
-            auto* renderSystem=new RenderSystem(this);
             ecs::addSystem(this, renderSystem, {});
 
         }
@@ -121,11 +119,11 @@ public:
         std::cout<<"析构Scene1"<<std::endl;
     }
 };
+
 class Scene2:public ecs::Scene {
 public:
-    Scene2() {
+    Scene2(ChangeTransform3DSystem* changeTransform3dSystem,SoftRenderSystem* renderSystem){
         {
-
             auto* img1=IMG_Load("assets/1.png");
             ResourceManager::getInstance().getSurfaceCache().set("img1-tex",img1);
         }
@@ -153,22 +151,21 @@ public:
             mesh.vertices[6].uv={1,1};//右下
             mesh.vertices[7].uv={0,1};//左下
             mesh.indices=shape.indices;
-            Material material=Material{"3d_pipeline",{255,255,255,255},"img1-tex"};
+            Material material=Material{"3d_pipeline",{255,255,255,255},""};
             ecs::setComponent<Drawable3DFlag>(this,cube,Drawable3DFlag{0,material,mesh});
-            //旋转
-            ecs::setComponent<Rotation3DFlag>(this,cube,Rotation3DFlag{10,10,10});
-            auto* changeTransform3dSystem=new ChangeTransform3DSystem(this);
-            ecs::addSystem(this, changeTransform3dSystem, {});
         }
         {
 
             Entity camera2=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,camera2, ecs::Enabled{true});
-            ecs::setComponent<Transform3DComp>(this,camera2,Transform3DComp{});
+            ecs::setComponent<Transform3DComp>(this,camera2,Transform3DComp{{{},{0,180,0}}});
+            //旋转
+            ecs::setComponent<Rotation3DFlag>(this,camera2,Rotation3DFlag{10,10,10});
+            ecs::addSystem(this, changeTransform3dSystem, {});
+
             // auto* gpu = ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
             auto* target=new ColorBuffer(800,600);
             ecs::setComponent<Camera3DComp>(this,camera2,{target,glm::radians(60.0f),1.0f/1,-1,-1000});
-            auto* renderSystem=new RenderSystem(this);
             ecs::addSystem(this, renderSystem, {});
         }
     }
@@ -176,8 +173,16 @@ public:
         std::cout<<"析构Scene2"<<std::endl;
     }
 };
+
+
 void DemogameApplication::init() {
     //全局数据区
-
-    scene=new Scene2();
+    auto* print_system1 = new PrintSystem(1);
+    auto* print_system2 = new PrintSystem(2);
+    auto* changeTransformSystem=new ChangeTransformSystem();
+    auto* animationSystem=new AnimationSystem();
+    auto* softRenderSystem=new SoftRenderSystem();
+    auto* changeTransform3dSystem=new ChangeTransform3DSystem();
+    // scene=new Scene1(print_system1,print_system2,changeTransformSystem,animationSystem,softRenderSystem);
+    scene=new Scene2(changeTransform3dSystem,softRenderSystem);
 }

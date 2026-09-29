@@ -22,16 +22,28 @@ using SystemOrder=std::pair<SystemId,int>;
 namespace ecs {
     class Scene {
     public:
+        ~Scene();
+
+        void init();
+
+        void start();
+
+        void fixed_update(double deltaTime);
+
+        void update(double deltaTime);
+
+        void draw();
+
         Entity nextEntityId = 0;
         SystemId nextSystemId = 0;
         WorldId nextWorldId = 0;
         std::unordered_map<std::type_index,std::unordered_map<Entity,std::any>> ce_storage;
         // std::unordered_map<Entity,std::any>ec_storage;//反向索引加速查询实体有哪些组件
 
-        //使用shared_ptr切换场景自动释放system
-        std::unordered_map<SystemId,std::shared_ptr<ecs::System>> systemIds;
+        std::unordered_map<SystemId,ecs::System*> systemIds;
 
         std::vector<SystemOrder> system_start_orders;
+        std::vector<SystemOrder> system_end_orders;
         std::vector<SystemOrder> system_update_orders;
         std::vector<SystemOrder> system_fixed_update_orders;
         std::vector<SystemOrder> system_draw_orders;
