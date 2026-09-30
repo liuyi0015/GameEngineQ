@@ -11,11 +11,11 @@ namespace ecs {
     class MonoBehaviourSystem : public System{
     private:
         [[nodiscard]] bool checkEnabled(Entity entity) const {
-            auto enabled=getComponent<Enabled>(scene, entity);
-            if (!enabled.has_value()) {
+            auto* enabled=getComponent<Enabled>(scene, entity);
+            if (enabled==nullptr) {
                 return false;
             }
-            return enabled.value().value;
+            return enabled->value;
         }
     protected:
         Entity curEntity=-1;

@@ -7,17 +7,9 @@
 #include <string>
 
 #include "SDL3_image/SDL_image.h"
+#include "AnimationClip.h"
 #include <vector>
-struct FrameAnimationFlag {
-    std::string animId;
-    int counter=0;
-
-    bool loop;
-    double timer=0;
-};
 struct AnimationFlag {
-
-    bool loop=true;
-    double timer=0;
+    std::vector<AnimationClip>anims;
 };
 #endif //GAMEENGINE_ANIMATIONCOMPONENTS_H

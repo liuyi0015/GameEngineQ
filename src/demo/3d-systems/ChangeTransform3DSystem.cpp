@@ -8,11 +8,10 @@
 void ChangeTransform3DSystem::onFixedUpdate(double deltaTime) {
     MonoBehaviourSystem<Rotation3DFlag>::onFixedUpdate(deltaTime);
     //仅旋转
-    auto transform = ecs::getComponent<Transform3DComp>(scene, curEntity).value();
-    auto rotation=ecs::getComponent<Rotation3DFlag>(scene, curEntity).value();
+    auto* transformComp = ecs::getComponent<Transform3DComp>(scene, curEntity);
+    auto* rotationComp=ecs::getComponent<Rotation3DFlag>(scene, curEntity);
 
-    transform.transform.rotation.x+= rotation.speedX * static_cast<float>(deltaTime);
-    transform.transform.rotation.y+= rotation.speedY * static_cast<float>(deltaTime);
-    transform.transform.rotation.z+= rotation.speedZ * static_cast<float>(deltaTime);
-    ecs::setComponent<Transform3DComp>(scene, curEntity,transform);
+    transformComp->transform.rotation.x+= rotationComp->speedX * static_cast<float>(deltaTime);
+    transformComp->transform.rotation.y+= rotationComp->speedY * static_cast<float>(deltaTime);
+    transformComp->transform.rotation.z+= rotationComp->speedZ * static_cast<float>(deltaTime);
 }

@@ -15,7 +15,7 @@
 struct Material {
     std::string pipeline_name;
     SDL_Color color;
-    std::string texResourceId;
+    SDL_Surface* surface;
 };
 
 struct Camera2DComp {

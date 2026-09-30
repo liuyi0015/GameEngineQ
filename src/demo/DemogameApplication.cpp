@@ -18,6 +18,8 @@
 #include "../ecs/util/TransformSceneUtil.h"
 #include "../graphics/Shape3DBuilder.h"
 #include "3d-systems/ChangeTransform3DSystem.h"
+#include "../core/AudioPlayer.h"
+#include "../ecs/systems/anim/FrameTimeline.h"
 // ecs::Scene *DemogameApplication::loadScene1() {
 //
 //     auto* scene=new ecs::Scene("scene1");
@@ -91,11 +93,18 @@ public:
             mesh.vertices[3].uv={0,1};//左下
             mesh.indices=rect.indices;
             //todo 目前pipeline写死在render2dProcess，这里配置无效
-            Material material={"img1-pipeline",{255,255,255,255},"img1-tex"};
+            auto* img1_surface=ResourceManager::getInstance().getSurfaceCache().get("img1-tex");
+            Material material={"img1-pipeline",{255,255,255,255},img1_surface};
             ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,material,mesh});
 
             ecs::setComponent<RotationFlag>(this,img1_entity,{-40.0f});
-            ecs::setComponent<FrameAnimationFlag>(this,img1_entity,FrameAnimationFlag{"anim1",0,true});
+            AnimationFlag animFlag;
+            AnimationClip animClip;
+            animClip.duration=1000;
+            auto* frame_timeline=new FrameTimeline("anim1",&ecs::getComponent<Drawable2DFlag>(this,img1_entity)->material.surface);
+            animClip.timelines.push_back(std::shared_ptr<FrameTimeline>(frame_timeline));
+            animFlag.anims.push_back(animClip);
+            ecs::setComponent<AnimationFlag>(this,img1_entity,animFlag);
             ecs::addSystem(this,animationSystem,{});
         }
         {
@@ -151,7 +160,7 @@ public:
             mesh.vertices[6].uv={1,1};//右下
             mesh.vertices[7].uv={0,1};//左下
             mesh.indices=shape.indices;
-            Material material=Material{"3d_pipeline",{255,255,255,255},""};
+            Material material=Material{"3d_pipeline",{255,255,255,255},nullptr};
             ecs::setComponent<Drawable3DFlag>(this,cube,Drawable3DFlag{0,material,mesh});
         }
         {
@@ -183,6 +192,9 @@ void DemogameApplication::init() {
     auto* animationSystem=new AnimationSystem();
     auto* softRenderSystem=new SoftRenderSystem();
     auto* changeTransform3dSystem=new ChangeTransform3DSystem();
-    // scene=new Scene1(print_system1,print_system2,changeTransformSystem,animationSystem,softRenderSystem);
-    scene=new Scene2(changeTransform3dSystem,softRenderSystem);
+    ecs::Scene* scene1=new Scene1(print_system1,print_system2,changeTransformSystem,animationSystem,softRenderSystem);
+    // ecs::Scene* scene2=new Scene2(changeTransform3dSystem,softRenderSystem);
+    scene=scene1;
+    scene->init();
+	AudioPlayer::loadAndPlay("assets/2.mp3");
 }

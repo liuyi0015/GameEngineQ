@@ -38,9 +38,9 @@ static Uniform * collectUniform(ecs::Scene* scene,Entity entity,Entity camera) {
     auto transformComp = ecs::getComponent<Transform2DComp>(scene, entity);
     auto cameraComp = ecs::getComponent<Camera2DComp>(scene, camera);
     auto cameraTransformComp=ecs::getComponent<Transform2DComp>(scene, camera);
-    assert(transformComp.has_value()&&drawableFlag.has_value()&&cameraComp.has_value()&&cameraTransformComp.has_value());
-    auto cameraWorldTransform=TransformSceneUtil::computeLocalToWorldTransform(cameraTransformComp.value(),scene);
-    auto worldTransform = TransformSceneUtil::computeLocalToWorldTransform(transformComp.value(),scene);
+    assert(transformComp!=nullptr&&drawableFlag!=nullptr&&cameraComp!=nullptr&&cameraTransformComp!=nullptr);
+    auto cameraWorldTransform=TransformSceneUtil::computeLocalToWorldTransform(*cameraTransformComp,scene);
+    auto worldTransform = TransformSceneUtil::computeLocalToWorldTransform(*transformComp,scene);
     auto modelMatrix=Transform2DUtil::transformToMatrix(worldTransform);
     auto viewMatrix = Transform2DUtil::getReverseTransformToMatrix(cameraWorldTransform);
     int clipW=cameraComp->captureWidth;
@@ -52,7 +52,7 @@ static Uniform * collectUniform(ecs::Scene* scene,Entity entity,Entity camera) {
         );//没有投影但要坐标归一化
     //列向量约定
     auto mvpMatrix=projectMatrix*viewMatrix*modelMatrix;
-    auto texture= ResourceManager::getInstance().getSurfaceCache().get(drawableFlag.value().material.texResourceId);
+    auto texture= drawableFlag->material.surface;
     auto* uniform=new Uniform2D();
     uniform->mvpMatrix=mvpMatrix;
     if (texture!=nullptr) {
@@ -66,17 +66,17 @@ void Render2DProcess::uploadData() {
     Entity camera=ecs::searchEntity<Camera2DComp>(scene)[0];
 
     for (const auto entity:ecs::getEntities<Drawable2DFlag>(scene)) {
-        auto drawableFlag= ecs::getComponent<Drawable2DFlag>(scene, entity).value();
+        auto* drawableFlag= ecs::getComponent<Drawable2DFlag>(scene, entity);
         //上传顶点
         renderContext->vertOffsets[entity]=gpu->vert_buffers[this->vert_buffer_index]->vertices.size();
-        renderContext->vertCounts[entity]=drawableFlag.mesh.vertices.size();
-        for (const auto & vertice : drawableFlag.mesh.vertices) {
+        renderContext->vertCounts[entity]=drawableFlag->mesh.vertices.size();
+        for (const auto & vertice : drawableFlag->mesh.vertices) {
             gpu->vert_buffers[this->vert_buffer_index]->vertices.push_back(vertice);
         }
         //上传索引
         renderContext->indexOffsets[entity]=gpu->index_buffers[this->index_buffer_index]->indices.size();
-        renderContext->indexCounts[entity]=drawableFlag.mesh.indices.size();
-        for (const auto & index : drawableFlag.mesh.indices) {
+        renderContext->indexCounts[entity]=drawableFlag->mesh.indices.size();
+        for (const auto & index : drawableFlag->mesh.indices) {
             gpu->index_buffers[this->index_buffer_index]->indices.push_back(index);
         }
         Uniform* uniform=collectUniform(scene,entity,camera);
@@ -89,14 +89,14 @@ void Render2DProcess::draw() {
     //目前只拿第一个摄像机
     if (ecs::searchEntity<Camera2DComp>(scene).empty())return;
     Entity camera=ecs::searchEntity<Camera2DComp>(scene)[0];
-    ColorBuffer* target=ecs::getComponent<Camera2DComp>(scene,camera).value().target;
+    ColorBuffer* target=ecs::getComponent<Camera2DComp>(scene,camera)->target;
     //按pipeline分组排序
     //或者说先整体排序再分组
     std::vector<std::pair<int,Entity>> drawableEntities;
     for (const auto entity:ecs::getEntities<Drawable2DFlag>(scene)) {
-        if (ecs::getComponent<Drawable2DFlag>(scene, entity).has_value()) {
-            auto zOrder = ecs::getComponent<Drawable2DFlag>(scene, entity).value().z_order;
-            drawableEntities.push_back({zOrder,entity});
+        auto* drawableFlag = ecs::getComponent<Drawable2DFlag>(scene, entity);
+        if (drawableFlag!=nullptr) {
+            drawableEntities.push_back({drawableFlag->z_order,entity});
         }
     }
     // sort by zOrder (ascending), stable to preserve insertion order for equal z

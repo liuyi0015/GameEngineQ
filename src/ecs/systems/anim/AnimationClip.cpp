@@ -3,3 +3,13 @@
 //
 
 #include "AnimationClip.h"
+
+void AnimationClip::update(double dt) {
+    timer+=dt;
+    while (loop && timer>duration) {
+        timer-=duration;
+    }
+    for (auto& timeline: timelines) {
+        timeline->updateValue(timer,duration);
+    }
+}

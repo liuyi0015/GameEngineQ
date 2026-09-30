@@ -38,10 +38,6 @@ static void init() {
 	app->init();
 	std::cout<<"init success"<<std::endl;
 }
-static void start() {
-	// AudioPlayer::loadAndPlay("assets/2.mp3");
-	ApplicationContext::getInstance().get<Application*>("app")->start();
-}
 static void fixed_update(double deltaTime) {
 	ApplicationContext::getInstance().get<Application*>("app")->fixed_update(deltaTime);
 }
@@ -83,7 +79,6 @@ bool handleEvents() {
 }
 
 static int main_loop() {
-	start();
 	// FPS计数相关（使用 SDL_GetTicks 返回 Uint32）
 	Uint32 fpsLastTick = SDL_GetTicks(); // 毫秒
 	int frameCount =0;

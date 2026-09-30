@@ -35,13 +35,13 @@ void SoftRenderSystem::start() {
 void SoftRenderSystem::draw() {
     renderCompositorProcess->srcs.clear();
     for (Entity camera2d:ecs::searchEntity<Camera2DComp>(scene)) {
-        ColorBuffer* target=ecs::getComponent<Camera2DComp>(scene,camera2d).value().target;
+        ColorBuffer* target=ecs::getComponent<Camera2DComp>(scene,camera2d)->target;
         renderCompositorProcess->srcs.push_back(target);
     }
-    for (Entity camera3d:ecs::searchEntity<Camera3DComp>(scene)) {
-        ColorBuffer* target=ecs::getComponent<Camera3DComp>(scene,camera3d).value().target;
-        renderCompositorProcess->srcs.push_back(target);
-    }
+    // for (Entity camera3d:ecs::searchEntity<Camera3DComp>(scene)) {
+    //     ColorBuffer* target=ecs::getComponent<Camera3DComp>(scene,camera3d)->target;
+    //     renderCompositorProcess->srcs.push_back(target);
+    // }
     //2d
     render2dProcess->uploadData();
     render2dProcess->draw();

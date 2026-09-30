@@ -16,29 +16,29 @@ namespace ecs{
         return entity;
     }
     template <typename T>
-    static std::optional<T> getComponent(Scene* scene, const Entity entity) {
+    static T* getComponent(Scene* scene, const Entity entity) {
         auto typeIt = scene->ce_storage.find(typeid(T));
         if (typeIt == scene->ce_storage.end()) {
             // std::cout<<entity<<"no component:"<<typeid(T).name()<<std::endl;
-            return std::nullopt;
+            return nullptr;
         }
 
         auto entityIt = typeIt->second.find(entity);
         if (entityIt == typeIt->second.end()) {
             // std::cout<<typeid(T).name()<<"no entity:"<<entity<<std::endl;
             // std::cout<<"（组件里找不到就是实体没有该组件）"<<std::endl;
-            return std::nullopt;
+            return nullptr;
         }
-
         try {
-            return std::any_cast<T>(entityIt->second);
+            return std::any_cast<T>(&entityIt->second);
         } catch (const std::bad_any_cast&  err) {
             std::cerr<<"组件转换失败"<<err.what()<<std::endl;
-            return std::nullopt;
+            return nullptr;
         }
     }
+    //复制comp
     template <typename T>
-    static bool setComponent(Scene* scene, const Entity entity, const T& component) {
+    static bool setComponent(Scene* scene, const Entity entity, T component) {
         scene->ce_storage[typeid(T)][entity] = component;
         return true;
     }

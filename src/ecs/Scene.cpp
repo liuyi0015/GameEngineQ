@@ -25,6 +25,7 @@ void ecs::Scene::init() {
     std::sort(system_update_orders.begin(), system_update_orders.end(), SystemComparer());
     std::sort(system_draw_orders.begin(), system_draw_orders.end(), SystemComparer());
 
+    start();
 }
 void ecs::Scene::start(){
     for (const auto& systemOrder:system_start_orders) {

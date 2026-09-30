@@ -14,9 +14,6 @@ public:
         delete scene;
     };
     void init()override;
-    void start()override {
-        scene->start();
-    };
     void fixed_update(double deltaTime)override {
         scene->fixed_update(deltaTime);
     };

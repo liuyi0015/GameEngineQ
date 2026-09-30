@@ -5,11 +5,24 @@
 #ifndef GAMEENGINEQ_TIMELINE_H
 #define GAMEENGINEQ_TIMELINE_H
 #include <functional>
+#include <queue>
 #include <vector>
 
+struct  TimerFunc {
+    double time;
+    std::function<void()>func;
+};
+class TimerFuncComparer {
+    public:
+    bool operator()(const TimerFunc& a,const TimerFunc& b) const {
+        return a.time < b.time;
+    }
+};
+//一条轨道
 class Timeline {
-    std::vector<std::function<void>>funcs;
-    std::vector<double>times;
+public:
+    virtual ~Timeline() = default;
+    virtual void updateValue(double timer,double duration)=0;
 };
 
 
