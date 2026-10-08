@@ -97,10 +97,11 @@ public:
             Material material={"img1-pipeline",{255,255,255,255},img1_surface};
             ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,material,mesh});
 
-            ecs::setComponent<RotationFlag>(this,img1_entity,{-40.0f});
+            // ecs::setComponent<RotationFlag>(this,img1_entity,{-40.0f});
             AnimationFlag animFlag;
             AnimationClip animClip;
-            animClip.duration=1000;
+            animClip.duration=1;
+            animClip.loop=true;
             auto* frame_timeline=new FrameTimeline("anim1",&ecs::getComponent<Drawable2DFlag>(this,img1_entity)->material.surface);
             animClip.timelines.push_back(std::shared_ptr<FrameTimeline>(frame_timeline));
             animFlag.anims.push_back(animClip);

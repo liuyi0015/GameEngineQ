@@ -1,0 +1,13 @@
+//
+// Created by XL0002 on 2026/10/8.
+//
+
+#ifndef GAMEENGINEQ_KEYINPUTMAPPING_H
+#define GAMEENGINEQ_KEYINPUTMAPPING_H
+
+
+class KeyInputMapping {
+};
+
+
+#endif //GAMEENGINEQ_KEYINPUTMAPPING_H

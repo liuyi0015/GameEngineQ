@@ -11,6 +11,7 @@
 #include "core/Context.hpp"
 #include "core/EventBus.h"
 #include "demo/DemogameApplication.h"
+#include "input/MouseInputMapping.h"
 #include "soft-render/GpuSimulator.h"
 
 #if _WIN32
@@ -47,52 +48,54 @@ static void update(double deltaTime) {
 static void draw() {
 	ApplicationContext::getInstance().get<Application*>("app")->draw();
 }
-bool handleEvents() {
-	SDL_Event event;
-	// 事件循环
-	while (SDL_PollEvent(&event)) {
-		if (event.type==SDL_EVENT_QUIT) {
-			return false;
+void handleInput(const SDL_Event& event) {
+
+	if (event.type==SDL_EVENT_MOUSE_BUTTON_DOWN) {
+		if (event.button.button==SDL_BUTTON_LEFT) {
+			MouseInputMapping::leftMousePressed(event.button);
+		}else if (event.button.button==SDL_BUTTON_RIGHT) {
+			MouseInputMapping::rightMousePressed(event.button);
+		}else if (event.button.button==SDL_BUTTON_MIDDLE) {
+			MouseInputMapping::middleMousePressed(event.button);
 		}
-		if (event.type==SDL_EVENT_WINDOW_RESIZED) {
-			auto config=ApplicationContext::getInstance().get<Config>("config");
-			auto* window=ApplicationContext::getInstance().get<SDL_Window*>("window");
-			SDL_GetWindowSize(window,&config.WINDOW_WIDTH,&config.WINDOW_HEIGHT);
-			ApplicationContext::getInstance().set<Config>("config",config);
+	}else if (event.type==SDL_EVENT_MOUSE_BUTTON_UP) {
+		if (event.button.button==SDL_BUTTON_LEFT) {
+			MouseInputMapping::leftMouseReleased(event.button);
+		}else if (event.button.button==SDL_BUTTON_RIGHT) {
+			MouseInputMapping::rightMouseReleased(event.button);
+		}else if (event.button.button==SDL_BUTTON_MIDDLE) {
+			MouseInputMapping::middleMouseReleased(event.button);
 		}
-		if (event.type==SDL_EVENT_MOUSE_BUTTON_DOWN) {
-			EventBus::getInstance().publish("input mouse button",event.button);
-		}else if (event.type==SDL_EVENT_MOUSE_BUTTON_UP) {
-			EventBus::getInstance().publish("input mouse button",event.button);
-		}else if (event.type==SDL_EVENT_MOUSE_MOTION) {
-			EventBus::getInstance().publish("input mouse moved",event.motion);
-		}else if (event.type==SDL_EVENT_MOUSE_WHEEL){
-			EventBus::getInstance().publish("input mouse wheeled",event.wheel);
-		}else if (event.type==SDL_EVENT_KEY_DOWN) {
-			EventBus::getInstance().publish("input key",event.key);
-		}else if (event.type==SDL_EVENT_KEY_UP) {
-			EventBus::getInstance().publish("input key",event.key);
+	}else if (event.type==SDL_EVENT_MOUSE_MOTION) {
+		MouseInputMapping::mouseMoved(event.motion);
+	}else if (event.type==SDL_EVENT_MOUSE_WHEEL){
+		if (event.wheel.y > 0) {
+			MouseInputMapping::wheelScrollUp(event.wheel);
+		} else if (event.wheel.y < 0) {
+			MouseInputMapping::wheelScrollDown(event.wheel);
 		}
+	}else if (event.type==SDL_EVENT_KEY_DOWN) {
+	}else if (event.type==SDL_EVENT_KEY_UP) {
 	}
-	EventBus::getInstance().consumeEvents();
-	return true;
 }
 
 static int main_loop() {
-	// FPS计数相关（使用 SDL_GetTicks 返回 Uint32）
-	Uint32 fpsLastTick = SDL_GetTicks(); // 毫秒
-	int frameCount =0;
-	Uint64 lastPerformanceCounter = SDL_GetPerformanceCounter();
-	Uint64 performanceFrequency = SDL_GetPerformanceFrequency();
 	auto config=ApplicationContext::getInstance().get<Config>("config");
+	//帧间隔
+	Uint32 lastTick = SDL_GetTicks(); // 毫秒
+	// FPS计数相关
+	Uint32 lastSecondTick = SDL_GetTicks();
+	//用于计算FPS
+	int frameCount =0;
+	//用于逻辑更新
 	double frameTimeAccumulator = 0.0;
 	// 主循环
 	std::cout<<"Main loop started after"<<SDL_GetTicks()<<std::endl;
-    while (true) {
+	bool shouldStop = false;
+    while (!shouldStop) {
     	// 计算帧间隔
-    	Uint64 currentCounter = SDL_GetPerformanceCounter();
-    	double deltaTime = static_cast<double>(currentCounter - lastPerformanceCounter) / static_cast<double>(performanceFrequency);
-    	lastPerformanceCounter = currentCounter;
+        Uint32 now = SDL_GetTicks();
+    	double deltaTime = static_cast<double>(now - lastTick) / 1000.0;
     	//逻辑更新
     	frameTimeAccumulator += deltaTime;
     	while (frameTimeAccumulator >= config.UPDATE_INTERVAL) {
@@ -103,16 +106,31 @@ static int main_loop() {
     	update(deltaTime);
     	draw();
     	//后面可以加一些调试信息
+    	//帧率
         // 每渲染一帧计数
         frameCount++;
     	//每秒打印
-        Uint32 now = SDL_GetTicks();
-        if (now - fpsLastTick >= 1000) {
+        if (now-lastSecondTick >= 1000) {
             std::cout<<"FPS: "<<frameCount<<std::endl;
             frameCount = 0;
-            fpsLastTick = now;
+    		lastSecondTick=now;
         }
-    	if (!handleEvents()) break;
+    	// 事件处理
+    	SDL_Event event;
+    	while (SDL_PollEvent(&event)) {
+    		if (event.type==SDL_EVENT_QUIT) {
+    			shouldStop=true;
+    		}
+
+    		if (event.type==SDL_EVENT_WINDOW_RESIZED) {
+    			auto* window=ApplicationContext::getInstance().get<SDL_Window*>("window");
+    			SDL_GetWindowSize(window,&config.WINDOW_WIDTH,&config.WINDOW_HEIGHT);
+    			ApplicationContext::getInstance().set<Config>("config",config);
+    		}
+    		handleInput(event);
+    	}
+    	EventBus::getInstance().consumeEvents();
+    	lastTick=now;
 	}
 	SDL_Quit();
     return 0;

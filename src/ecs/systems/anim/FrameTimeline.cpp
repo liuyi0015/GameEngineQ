@@ -13,12 +13,11 @@ FrameTimeline::FrameTimeline(std::string animId, SDL_Surface** drawableCompTarge
     double time = 0;
     for (int i = 0; i < anim->count; i++) {
         frames.push_back({time, anim->frames[i]});
-        time += anim->delays[i];
+        time += anim->delays[i]/1000.0;
     }
 }
 
 FrameTimeline::~FrameTimeline() {
-    // IMG_FreeAnimation(anim);
 }
 
 void FrameTimeline::updateValue(double timer,double duration) {
@@ -27,6 +26,9 @@ void FrameTimeline::updateValue(double timer,double duration) {
         i++;
     }
     //todo边界处理
+    if (i>=frames.size()) {
+        i=frames.size()-1;
+    }
     //动画surface*传给绘制surface*
     *target=frames[i].second;
 }
