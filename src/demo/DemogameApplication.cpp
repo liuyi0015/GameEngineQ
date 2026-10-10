@@ -92,8 +92,8 @@ public:
             mesh.vertices[2].uv={1,1};//右下
             mesh.vertices[3].uv={0,1};//左下
             mesh.indices=rect.indices;
-            //todo 目前pipeline写死在render2dProcess，这里配置无效
             auto* img1_surface=ResourceManager::getInstance().getSurfaceCache().get("img1-tex");
+            //todo 目前pipeline写死在render2dProcess，这里配置无效
             Material material={"img1-pipeline",{255,255,255,255},img1_surface};
             ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,material,mesh});
 
@@ -194,8 +194,8 @@ void DemogameApplication::init() {
     auto* softRenderSystem=new SoftRenderSystem();
     auto* changeTransform3dSystem=new ChangeTransform3DSystem();
     ecs::Scene* scene1=new Scene1(print_system1,print_system2,changeTransformSystem,animationSystem,softRenderSystem);
-    // ecs::Scene* scene2=new Scene2(changeTransform3dSystem,softRenderSystem);
-    scene=scene1;
+    ecs::Scene* scene2=new Scene2(changeTransform3dSystem,softRenderSystem);
+    scene=scene2;
     scene->init();
 	AudioPlayer::loadAndPlay("assets/2.mp3");
 }

@@ -14,7 +14,6 @@
 
 class Render3DProcess {
 private:
-    ecs::Scene* scene;
     SoftGPU* gpu;
     RenderContext* renderContext;
     std::size_t vert_buffer_index;
@@ -22,8 +21,8 @@ private:
     std::size_t uniform_buffer_index;
 
 public:
-    explicit Render3DProcess(ecs::Scene* scene,RenderContext* renderContext)
-    : scene(scene),  renderContext(renderContext){
+    explicit Render3DProcess(RenderContext* renderContext)
+    : renderContext(renderContext){
         gpu = ApplicationContext::getInstance().get<SoftGPU *>("mygpu");
     }
 
@@ -31,8 +30,8 @@ public:
 
     void registerPipelines() ;
     void initBuffers();
-    void uploadData();
-    void draw();
+    void uploadData(ecs::Scene *scene);
+    void draw(ecs::Scene *scene);
     void endFrame();
 };
 

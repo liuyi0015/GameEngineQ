@@ -50,7 +50,7 @@ static Uniform * collectUniform(ecs::Scene* scene,Entity entity,Entity camera) {
     // uniform.color=drawableFlag.value().color;
     return uniform;
 }
-void Render3DProcess::uploadData() {
+void Render3DProcess::uploadData(ecs::Scene* scene) {
     if (ecs::searchEntity<Camera3DComp>(scene).empty())return;
     Entity camera=ecs::searchEntity<Camera3DComp>(scene)[0];
 
@@ -74,7 +74,7 @@ void Render3DProcess::uploadData() {
     }
 }
 
-void Render3DProcess::draw() {
+void Render3DProcess::draw(ecs::Scene* scene) {
     //目前只拿第一个摄像机
     if (ecs::searchEntity<Camera3DComp>(scene).empty())return;
     Entity camera=ecs::searchEntity<Camera3DComp>(scene)[0];

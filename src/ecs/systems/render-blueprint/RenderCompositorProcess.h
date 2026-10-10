@@ -28,7 +28,6 @@ struct UniformCompositor:Uniform {
 
 class RenderCompositorProcess{
 private:
-    ecs::Scene* scene;
     SoftGPU* gpu;
     RenderContext* renderContext;
     ColorBuffer* target;
@@ -37,8 +36,8 @@ private:
     std::size_t uniform_buffer_index;
 
 public:
-    explicit RenderCompositorProcess(ecs::Scene* scene,RenderContext* renderContext,ColorBuffer* target)
-    : scene(scene),  renderContext(renderContext),target(target){
+    explicit RenderCompositorProcess(RenderContext* renderContext,ColorBuffer* target)
+    :   renderContext(renderContext),target(target){
         gpu = ApplicationContext::getInstance().get<SoftGPU *>("mygpu");
     }
 

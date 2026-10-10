@@ -14,13 +14,10 @@ SoftRenderSystem::SoftRenderSystem(){
     gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
     //让其他类也可以通过名字访问target
     // gpu->render_targets[this->targetName]=target;
-}
-//场景加载时调用
-void SoftRenderSystem::start() {
     renderContext=new RenderContext();
-    render2dProcess=new Render2DProcess (scene,renderContext);
-    render3dProcess=new Render3DProcess(scene,renderContext);
-    renderCompositorProcess=new RenderCompositorProcess (scene,renderContext,gpu->swapchain_texture);
+    render2dProcess=new Render2DProcess (renderContext);
+    render3dProcess=new Render3DProcess(renderContext);
+    renderCompositorProcess=new RenderCompositorProcess (renderContext,gpu->swapchain_texture);
     render2dProcess->initBuffers();
     render2dProcess->registerPipelines();
 
@@ -30,6 +27,9 @@ void SoftRenderSystem::start() {
     renderCompositorProcess->initBuffers();
     renderCompositorProcess->registerPipelines();
 }
+//场景加载时调用
+void SoftRenderSystem::start() {
+}
 
 
 void SoftRenderSystem::draw() {
@@ -38,17 +38,17 @@ void SoftRenderSystem::draw() {
         ColorBuffer* target=ecs::getComponent<Camera2DComp>(scene,camera2d)->target;
         renderCompositorProcess->srcs.push_back(target);
     }
-    // for (Entity camera3d:ecs::searchEntity<Camera3DComp>(scene)) {
-    //     ColorBuffer* target=ecs::getComponent<Camera3DComp>(scene,camera3d)->target;
-    //     renderCompositorProcess->srcs.push_back(target);
-    // }
+    for (Entity camera3d:ecs::searchEntity<Camera3DComp>(scene)) {
+        ColorBuffer* target=ecs::getComponent<Camera3DComp>(scene,camera3d)->target;
+        renderCompositorProcess->srcs.push_back(target);
+    }
     //2d
-    render2dProcess->uploadData();
-    render2dProcess->draw();
+    render2dProcess->uploadData(scene);
+    render2dProcess->draw(scene);
     render2dProcess->endFrame();
     //3d
-    render3dProcess->uploadData();
-    render3dProcess->draw();
+    render3dProcess->uploadData(scene);
+    render3dProcess->draw(scene);
     render3dProcess->endFrame();
     //ui
     //合成器
