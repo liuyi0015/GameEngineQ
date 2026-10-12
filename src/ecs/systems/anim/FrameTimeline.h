@@ -8,7 +8,7 @@
 
 #include "AnimationComponents.h"
 #include "Timeline.h"
-#include "../render-blueprint/RenderComponents.h"
+#include "../soft-render-blueprint/RenderComponents.h"
 #include "SDL3_image/SDL_image.h"
 
 

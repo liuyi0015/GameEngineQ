@@ -3,7 +3,7 @@
 //
 
 #include "FrameTimeline.h"
-#include "../render-blueprint/RenderComponents.h"
+#include "../soft-render-blueprint/RenderComponents.h"
 #include "../../../core/ResourceManager.hpp"
 #include "AnimationComponents.h"
 #include "../../Util.h"
@@ -25,7 +25,7 @@ void FrameTimeline::updateValue(double timer,double duration) {
     while (i<frames.size()&&timer>frames[i].first) {
         i++;
     }
-    //todo边界处理
+    //边界处理，即播放完毕后保持最后一帧
     if (i>=frames.size()) {
         i=frames.size()-1;
     }

@@ -141,8 +141,8 @@ public:
         swapchain_texture=new ColorBuffer(w,h);
     };
     ColorBuffer* swapchain_texture;
-    std::unordered_map<std::string,ColorBuffer*> render_targets;
-    std::unordered_map<std::string,IShader*> pipelines;
+    std::unordered_map<std::string,ColorBuffer*> render_targets_mapping;
+    std::unordered_map<std::string,IShader*> pipelines_mapping;
     std::vector<VertexBuffer*> vert_buffers;
     std::vector<IndiceBuffer*> index_buffers;
     std::vector<UniformBuffer*>uniform_buffers;

@@ -29,7 +29,7 @@ void Render2DProcess::registerPipelines() {
 
     //就用默认的
     auto pipeline=new Default2DShader();
-    gpu->pipelines["2d_pipeline"]=pipeline;
+    gpu->pipelines_mapping["2d_pipeline"]=pipeline;
 }
 
 //渲染蓝图里唯一依赖transform的函数，但是又不好提出去，怪怪的
@@ -109,7 +109,7 @@ void Render2DProcess::draw(ecs::Scene* scene) {
     render_pass.index_buffer_offset=this->index_buffer_index;
     render_pass.uniform_buffer_offset=this->uniform_buffer_index;
     //绑定渲染管线 todo 未分组
-    render_pass.cur_shader=gpu->pipelines["2d_pipeline"];
+    render_pass.cur_shader=gpu->pipelines_mapping["2d_pipeline"];
 
     gpu->BeginRenderPass(render_pass);
     //顶点分组

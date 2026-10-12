@@ -25,7 +25,7 @@ void Render3DProcess::registerPipelines() {
 
     //就用默认的
     auto pipeline=new Default3DShader();
-    gpu->pipelines["3d_pipeline"]=pipeline;
+    gpu->pipelines_mapping["3d_pipeline"]=pipeline;
 }
 
 //渲染蓝图里唯一依赖transform的函数，但是又不好提出去，怪怪的
@@ -68,6 +68,7 @@ void Render3DProcess::uploadData(ecs::Scene* scene) {
         for (const auto & index : drawableFlag->mesh.indices) {
             gpu->index_buffers[this->index_buffer_index]->indices.push_back(index);
         }
+
         Uniform* uniform=collectUniform(scene,entity,camera);
         gpu->uniform_buffers[this->uniform_buffer_index]->uniforms.push_back(uniform);
         renderContext->uniformOffsets[entity]=gpu->uniform_buffers[this->uniform_buffer_index]->uniforms.size()-1;
@@ -89,8 +90,8 @@ void Render3DProcess::draw(ecs::Scene* scene) {
         }
     }
     // sort by zOrder (ascending), stable to preserve insertion order for equal z
-    std::stable_sort(drawableEntities.begin(), drawableEntities.end(),
-                     [](const auto &a, const auto &b){ return a.first < b.first; });
+    // std::stable_sort(drawableEntities.begin(), drawableEntities.end(),
+    //                  [](const auto &a, const auto &b){ return a.first < b.first; });
     //绑定渲染目标
     RenderPass render_pass;
     render_pass.cur_target=target;
@@ -98,7 +99,7 @@ void Render3DProcess::draw(ecs::Scene* scene) {
     render_pass.index_buffer_offset=this->index_buffer_index;
     render_pass.uniform_buffer_offset=this->uniform_buffer_index;
     //绑定渲染管线 todo 未分组
-    render_pass.cur_shader=gpu->pipelines["3d_pipeline"];
+    render_pass.cur_shader=gpu->pipelines_mapping["3d_pipeline"];
     render_pass.edgeMode=true;//线框模式
     gpu->BeginRenderPass(render_pass);
     //顶点分组

@@ -18,11 +18,7 @@ struct Material {
     SDL_Surface* surface;
 };
 
-struct Camera2DComp {
-    float captureWidth;
-    float captureHeight;
-    ColorBuffer* target;
-};
+
 struct VertexAttrib2D {//每个顶点各自的数据
     glm::vec2 pos;// ndc
     glm::vec2 uv;
@@ -40,12 +36,7 @@ struct Mesh2D {
     std::vector<VertexAttrib2D> vertices;
     std::vector<glm::ivec3> indices;
 };
-//绘制声明，和资源声明互不干扰
-struct Drawable2DFlag {
-    int z_order = 0;
-    Material material;
-    Mesh2D mesh;
-};
+
 
 struct VertexAttrib3D {
     glm::vec3 pos;//w要留下做透视除法和裁剪
@@ -81,6 +72,18 @@ struct UniformLight3D:Uniform {
     ~UniformLight3D() override {
         delete texture;
     }
+};
+//通道相关
+struct Camera2DComp {
+    float captureWidth;
+    float captureHeight;
+    ColorBuffer* target;
+};
+//绘制声明，和资源声明互不干扰
+struct Drawable2DFlag {
+    int z_order = 0;
+    Material material;
+    Mesh2D mesh;
 };
 struct Camera3DComp {
     ColorBuffer* target;

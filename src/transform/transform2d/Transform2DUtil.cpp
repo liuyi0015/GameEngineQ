@@ -63,7 +63,7 @@ Transform2D Transform2DUtil::rotate(const Transform2D &transform, float angle, g
     glm::mat3 Tpos = matTranslate(pivot.x,pivot.y);
     float c=glm::cos(rad), s=glm::sin(rad);
     glm::mat3 R = matScale(s,c);
-    glm::mat3 m = Tpos * R * Tneg * transformToMatrix(transform);//todo
+    glm::mat3 m = Tpos * R * Tneg * transformToMatrix(transform);//todo glm向量约定到这里还没改，不一定正确
     Transform2D out=matrixToTransform(m);
     return out;
 }

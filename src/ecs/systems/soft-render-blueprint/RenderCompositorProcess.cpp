@@ -10,7 +10,7 @@
 void RenderCompositorProcess::registerPipelines() {
 
     auto pipeline=new ComposeShader();
-    gpu->pipelines["compose_pipeline"]=pipeline;
+    gpu->pipelines_mapping["compose_pipeline"]=pipeline;
 }
 
 void RenderCompositorProcess::initBuffers() {
@@ -67,7 +67,7 @@ void RenderCompositorProcess::draw() {
     compose_render_pass.vert_buffer_offset=this->vert_buffer_index;
     compose_render_pass.index_buffer_offset=this->index_buffer_index;
     compose_render_pass.uniform_buffer_offset=this->uniform_buffer_index;
-    compose_render_pass.cur_shader=gpu->pipelines["compose_pipeline"];
+    compose_render_pass.cur_shader=gpu->pipelines_mapping["compose_pipeline"];
     gpu->BeginRenderPass(compose_render_pass);
     gpu->drawcall(renderContext->composeIndexStart,2,renderContext->composeVertStart,0);
 }

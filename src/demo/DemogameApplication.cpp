@@ -9,11 +9,11 @@
 #include "../ecs/BaseComponents.h"
 #include "simple-systems/ChangeTransformSystem.h"
 #include "../ecs/systems/anim/AnimationSystem.h"
-#include "../ecs/systems/render-blueprint/RenderComponents.h"
+#include "../ecs/systems/soft-render-blueprint/RenderComponents.h"
 #include "SDL3_ttf/SDL_ttf.h"
 #include "simple-systems/PrintSystem.h"
 #include "../core/ResourceManager.hpp"
-#include "../ecs/systems/render-blueprint/SoftRenderSystem.h"
+#include "../ecs/systems/soft-render-blueprint/SoftRenderSystem.h"
 #include "../graphics/Shape2DBuilder.h"
 #include "../ecs/util/TransformSceneUtil.h"
 #include "../graphics/Shape3DBuilder.h"
@@ -187,6 +187,7 @@ public:
 
 void DemogameApplication::init() {
     //全局数据区
+    //system可能要多实例，所以不能静态
     auto* print_system1 = new PrintSystem(1);
     auto* print_system2 = new PrintSystem(2);
     auto* changeTransformSystem=new ChangeTransformSystem();
