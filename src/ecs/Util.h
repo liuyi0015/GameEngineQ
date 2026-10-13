@@ -15,6 +15,7 @@ namespace ecs{
         Entity entity = scene->nextEntityId++;
         return entity;
     }
+    //取引用，可直接修改
     template <typename T>
     static T* getComponent(Scene* scene, const Entity entity) {
         auto typeIt = scene->ce_storage.find(typeid(T));

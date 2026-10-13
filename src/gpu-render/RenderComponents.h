@@ -4,6 +4,7 @@
 
 #ifndef GAMEENGINEQ_RENDERCOMPONENTS_H
 #define GAMEENGINEQ_RENDERCOMPONENTS_H
+
 struct Mesh {
     std::vector<void*> vertices;
     std::vector<glm::ivec3> indices;

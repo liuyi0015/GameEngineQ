@@ -21,9 +21,8 @@ private:
     std::size_t uniform_buffer_index;
 
 public:
-    explicit Render2DProcess(RenderContext* renderContext)
-        : renderContext(renderContext){
-        this->gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
+    explicit Render2DProcess(RenderContext* renderContext, SoftGPU *gpu)
+        : renderContext(renderContext), gpu(gpu){
     }
     void initBuffers();
     void registerPipelines();

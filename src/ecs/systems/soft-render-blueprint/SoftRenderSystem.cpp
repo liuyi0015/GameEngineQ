@@ -10,14 +10,15 @@
 #include "../../../core/Context.hpp"
 
 SoftRenderSystem::SoftRenderSystem(){
-
-    gpu=ApplicationContext::getInstance().get<SoftGPU*>("mygpu");
+    SDL_Window* window=ApplicationContext::getInstance().get<SDL_Window*>("window");
+    // 创建渲染器
+    gpu=new SoftGPU(window);
     //让其他类也可以通过名字访问target
     // gpu->render_targets[this->targetName]=target;
     renderContext=new RenderContext();
-    render2dProcess=new Render2DProcess (renderContext);
-    render3dProcess=new Render3DProcess(renderContext);
-    renderCompositorProcess=new RenderCompositorProcess (renderContext,gpu->swapchain_texture);
+    render2dProcess=new Render2DProcess (renderContext,gpu);
+    render3dProcess=new Render3DProcess(renderContext,gpu);
+    renderCompositorProcess=new RenderCompositorProcess (renderContext,gpu->swapchain_texture,gpu);
     render2dProcess->initBuffers();
     render2dProcess->registerPipelines();
 

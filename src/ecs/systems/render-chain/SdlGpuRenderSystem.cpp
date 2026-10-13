@@ -2,16 +2,23 @@
 #include "SdlGpuRenderSystem.h"
 
 #include <cassert>
+
+#include "../../../core/Context.hpp"
 //
 // Created by XL0002 on 2026/9/29.
 //
-SdlGpuRenderSystem::SdlGpuRenderSystem(SDL_GPUDevice* device, SDL_Window *window) :device(device), window(window) {
+SdlGpuRenderSystem::SdlGpuRenderSystem() {
+
+    device=SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV,true,"vulkan");
+    assert(device!=nullptr);
+    window=ApplicationContext::getInstance().get<SDL_Window*>("window");
+    SDL_ClaimWindowForGPUDevice(device,window);
     render3dPass=new Render3DPass(device,window);
 }
 
 void SdlGpuRenderSystem::start() {
     assert(scene!=nullptr);
-    render3dPass->uploadData(scene);
+    render3dPass->uploadData(scene, drawableMeshes);
 }
 void SdlGpuRenderSystem::draw() {
     assert(scene!=nullptr);

@@ -36,9 +36,8 @@ private:
     std::size_t uniform_buffer_index;
 
 public:
-    explicit RenderCompositorProcess(RenderContext* renderContext,ColorBuffer* target)
-    :   renderContext(renderContext),target(target){
-        gpu = ApplicationContext::getInstance().get<SoftGPU *>("mygpu");
+    explicit RenderCompositorProcess(RenderContext* renderContext,ColorBuffer* target, SoftGPU *gpu)
+    :   renderContext(renderContext),target(target), gpu(gpu){
     }
 
     std::vector<ColorBuffer*> srcs;

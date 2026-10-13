@@ -31,11 +31,11 @@ public:
     Render3DPass(SDL_GPUDevice *device, SDL_Window *window);
     ~Render3DPass()= default;
 
-    void uploadData(ecs::Scene * scene);
+    void uploadData(ecs::Scene *scene, std::unordered_map<Entity, DrawableGPUMesh> &drawableMeshes);
 
-    void draw(ecs::Scene *scene, SDL_GPUTexture *targetTexture, SDL_GPUCommandBuffer *commandBuffer, std::unordered_map<Entity,
+    void draw(ecs::Scene *scene, SDL_GPUTexture *targetTexture, SDL_GPUCommandBuffer *commandBuffer, const std::unordered_map<Entity,
               DrawableGPUMesh>
-              drawableMeshes);
+              &drawableMeshes);
 };
 
 

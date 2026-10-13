@@ -26,6 +26,10 @@ static SDL_GPUGraphicsPipeline *define3DPipeline(SDL_GPUDevice *device, SDL_Wind
     // ----顶点着色器
     size_t vsCodeSize;
     void* vsCode = SDL_LoadFile("shaders/3d_color.vert.spv", &vsCodeSize);
+    if (vsCode == nullptr) {
+        std::cerr << "顶点着色器文件加载失败!" << std::endl;
+        return nullptr;
+    }
     SDL_GPUShaderCreateInfo vsCreateInfo = {
         .code_size = vsCodeSize,
         .code = (Uint8*)vsCode,
@@ -43,6 +47,10 @@ static SDL_GPUGraphicsPipeline *define3DPipeline(SDL_GPUDevice *device, SDL_Wind
     // ----片元着色器
     size_t fsCodeSize;
     void* fsCode = SDL_LoadFile("shaders/color.frag.spv", &fsCodeSize);
+    if (fsCode == nullptr) {
+        std::cerr << "片元着色器文件加载失败!" << std::endl;
+        return nullptr;
+    }
     SDL_GPUShaderCreateInfo fsCreateInfo = {
         .code_size = fsCodeSize,
         .code = (Uint8*)fsCode,
@@ -145,7 +153,7 @@ static void uploadToBuffer(SDL_GPUDevice *device,SDL_GPUBuffer* buffer,size_t ds
     SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
 }
 
-static SDL_GPUBuffer *uploadColor3DVertexToNewBuffer(SDL_GPUDevice *device, std::vector<ColorVertex3D> vertices) {
+static SDL_GPUBuffer *uploadColor3DVertexToNewBuffer(SDL_GPUDevice *device, std::vector<void*> vertices) {
 
     //创建顶点缓冲区
     SDL_GPUBufferCreateInfo vertBufferInfo = {
@@ -169,37 +177,12 @@ static SDL_GPUBuffer *uploadIndexToNewBuffer(SDL_GPUDevice *device, std::vector<
     uploadToBuffer(device,indexBuffer,0,(void*)indices.data(),indices.size()*sizeof(Indice));
     return indexBuffer;
 }
-Render3DPass::Render3DPass(SDL_GPUDevice *device, SDL_Window *window):device(device),window(window) {
-    pipeline3d=define3DPipeline(device, window);
-}
+
 
 #include "../../util/TransformSceneUtil.h"
 #include "../../Util.h"
 #include "../../../gpu-render/RenderComponents.h"
-void Render3DPass::uploadData(ecs::Scene *scene) {
 
-    std::vector<ColorVertex3D> vertices = {};
-    std::vector<Indice> indices = {};
-    //从场景中获取所有顶点和索引
-    // for (const auto entity:ecs::getEntities<Drawable3DFlag>(scene)) {
-    //     auto* drawableFlag= ecs::getComponent<Drawable3DFlag>(scene, entity);
-    //     //上传顶点
-    //     renderContext->vertOffsets[entity]=gpu->vert_buffers[this->vert_buffer_index]->vertices.size();
-    //     renderContext->vertCounts[entity]=drawableFlag->mesh.vertices.size();
-    //     for (const auto & vertice : drawableFlag->mesh.vertices) {
-    //         gpu->vert_buffers[this->vert_buffer_index]->vertices.push_back(vertice);
-    //     }
-    //     //上传索引
-    //     renderContext->indexOffsets[entity]=gpu->index_buffers[this->index_buffer_index]->indices.size();
-    //     renderContext->indexCounts[entity]=drawableFlag->mesh.indices.size();
-    //     for (const auto & index : drawableFlag->mesh.indices) {
-    //         gpu->index_buffers[this->index_buffer_index]->indices.push_back(index);
-    //     }
-    // }
-    // dataState.vertexBuffer = uploadColor3DVertexToNewBuffer(device, vertices);
-    // dataState.indexBuffer = uploadIndexToNewBuffer(device, indices);
-    // dataState.numIndices = indices.size() * 3;
-}
 static MVP collectMVP(ecs::Scene* scene,Entity entity,Entity camera) {
     auto drawableFlag= ecs::getComponent<Drawable3DFlag>(scene, entity);
     auto transformComp = ecs::getComponent<Transform3DComp>(scene, entity);
@@ -214,9 +197,31 @@ static MVP collectMVP(ecs::Scene* scene,Entity entity,Entity camera) {
     MVP mvpMatrix={modelMatrix,viewMatrix,projectMatrix};
     return mvpMatrix;
 }
-void Render3DPass::draw(ecs::Scene *scene,SDL_GPUTexture* targetTexture,SDL_GPUCommandBuffer* commandBuffer,std::unordered_map<Entity,DrawableGPUMesh>drawableMeshes) {
-    //目前只拿第一个摄像机
+Render3DPass::Render3DPass(SDL_GPUDevice *device, SDL_Window *window):device(device),window(window) {
+    pipeline3d=define3DPipeline(device, window);
+}
+void Render3DPass::uploadData(ecs::Scene *scene,std::unordered_map<Entity, DrawableGPUMesh>& drawableMeshes) {
+    size_t offset1 = 0, offset2 = 0;
+    for (const auto entity:ecs::getEntities<Drawable3DFlag>(scene)) {
+        auto* drawableFlag= ecs::getComponent<Drawable3DFlag>(scene, entity);
+        // drawableMeshes.insert({entity, DrawableGPUMesh{}});
+        //上传顶点
+        drawableMeshes.at(entity).vertexBuffer = uploadColor3DVertexToNewBuffer(device, drawableFlag->mesh.vertices);
+        drawableMeshes.at(entity).vertexCount=drawableFlag->mesh.vertices.size();
+        drawableMeshes.at(entity).vertexOffset=offset1;
+        offset1+=drawableFlag->mesh.vertices.size();
+        //上传索引
+        drawableMeshes.at(entity).indexBuffer = uploadIndexToNewBuffer(device, drawableFlag->mesh.indices);
+        drawableMeshes.at(entity).indexCount=drawableFlag->mesh.indices.size()*3;
+        drawableMeshes.at(entity).indexOffset=offset2;
+        offset2+=drawableFlag->mesh.indices.size()*3;
+
+    }
+}
+void Render3DPass::draw(ecs::Scene *scene,SDL_GPUTexture* targetTexture,SDL_GPUCommandBuffer* commandBuffer,
+    const std::unordered_map<Entity,DrawableGPUMesh>& drawableMeshes) {
     if (ecs::searchEntity<Camera3DComp>(scene).empty())return;
+    //目前只拿第一个摄像机
     Entity camera=ecs::searchEntity<Camera3DComp>(scene)[0];
 
     // 定义颜色目标，渲染过程颜色目标 = “这次实际渲染要写到哪个纹理，怎么清空和保存”
@@ -234,14 +239,14 @@ void Render3DPass::draw(ecs::Scene *scene,SDL_GPUTexture* targetTexture,SDL_GPUC
 
         // 绑定顶点缓冲区
         SDL_GPUBufferBinding vboBinding = {
-            .buffer = drawableMeshes[entity].vertexBuffer,
-            .offset = 0,
+            .buffer = drawableMeshes.at(entity).vertexBuffer,
+            .offset = drawableMeshes.at(entity).vertexOffset
         };
         SDL_BindGPUVertexBuffers(renderPass, 0, &vboBinding, 1);
         //绑定索引缓冲区
         SDL_GPUBufferBinding iboBinding = {
-            .buffer = drawableMeshes[entity].indexBuffer,
-            .offset = 0,
+            .buffer = drawableMeshes.at(entity).indexBuffer,
+            .offset = drawableMeshes.at(entity).indexOffset,
         };
         SDL_BindGPUIndexBuffer(renderPass, &iboBinding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
         //视口
@@ -254,7 +259,7 @@ void Render3DPass::draw(ecs::Scene *scene,SDL_GPUTexture* targetTexture,SDL_GPUC
         MVP mvp=collectMVP(scene,entity,camera);//todo 临时变量会不会提交前被销毁？
         SDL_PushGPUVertexUniformData(commandBuffer, 0, &mvp, sizeof(MVP));
         // 三角形绘制: 绘制图元，一个索引结构体对应3个数字
-        SDL_DrawGPUIndexedPrimitives(renderPass,drawableMeshes[entity].indexCount*3, 1, 0, 0, 0);
+        SDL_DrawGPUIndexedPrimitives(renderPass,drawableMeshes.at(entity).indexCount*3, 1, 0, 0, 0);
     }
     // 结束渲染过程
     SDL_EndGPURenderPass(renderPass);

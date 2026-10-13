@@ -1,9 +1,8 @@
 //
 // Created by XL0002 on 2026/9/15.
 //
-
-#ifndef GAMEENGINEQ_RENDERSYSTEM_H
-#define GAMEENGINEQ_RENDERSYSTEM_H
+#ifndef GAMEENGINEQ_SOFT_RENDERSYSTEM_H
+#define GAMEENGINEQ_SOFT_RENDERSYSTEM_H
 #include "Render2DProcess.h"
 #include "Render3DProcess.h"
 #include "RenderCompositorProcess.h"
@@ -26,4 +25,4 @@ public:
     void draw() override;
 };
 
-#endif //GAMEENGINEQ_RENDERSYSTEM_H
+#endif //GAMEENGINEQ_SOFT_RENDERSYSTEM_H

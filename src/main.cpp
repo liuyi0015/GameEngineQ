@@ -11,7 +11,7 @@
 #include "core/Context.hpp"
 #include "core/EventBus.h"
 #include "demo/DemogameApplication.h"
-#include "input/MouseInputMapping.h"
+#include "input/InputMapping.h"
 #include "soft-render/GpuSimulator.h"
 
 #if _WIN32
@@ -30,10 +30,7 @@ static void init() {
 	SDL_SetWindowFullscreen(window, config.FULL_SCREEN);
 	SDL_Surface *icon = IMG_Load(config.WINDOW_ICON.c_str());
 	SDL_SetWindowIcon(window,  icon);
-	// 创建渲染器
-	auto mygpu=new SoftGPU(window);
 	ApplicationContext::getInstance().set("window", window);
-	ApplicationContext::getInstance().set<SoftGPU*>("mygpu",mygpu);
 	auto* app=new DemogameApplication();//可替换
 	ApplicationContext::getInstance().set<Application*>("app", app);
 	app->init();
@@ -47,36 +44,6 @@ static void update(double deltaTime) {
 }
 static void draw() {
 	ApplicationContext::getInstance().get<Application*>("app")->draw();
-}
-void handleInput(const SDL_Event& event) {
-
-	if (event.type==SDL_EVENT_MOUSE_BUTTON_DOWN) {
-		if (event.button.button==SDL_BUTTON_LEFT) {
-			MouseInputMapping::leftMousePressed(event.button);
-		}else if (event.button.button==SDL_BUTTON_RIGHT) {
-			MouseInputMapping::rightMousePressed(event.button);
-		}else if (event.button.button==SDL_BUTTON_MIDDLE) {
-			MouseInputMapping::middleMousePressed(event.button);
-		}
-	}else if (event.type==SDL_EVENT_MOUSE_BUTTON_UP) {
-		if (event.button.button==SDL_BUTTON_LEFT) {
-			MouseInputMapping::leftMouseReleased(event.button);
-		}else if (event.button.button==SDL_BUTTON_RIGHT) {
-			MouseInputMapping::rightMouseReleased(event.button);
-		}else if (event.button.button==SDL_BUTTON_MIDDLE) {
-			MouseInputMapping::middleMouseReleased(event.button);
-		}
-	}else if (event.type==SDL_EVENT_MOUSE_MOTION) {
-		MouseInputMapping::mouseMoved(event.motion);
-	}else if (event.type==SDL_EVENT_MOUSE_WHEEL){
-		if (event.wheel.y > 0) {
-			MouseInputMapping::wheelScrollUp(event.wheel);
-		} else if (event.wheel.y < 0) {
-			MouseInputMapping::wheelScrollDown(event.wheel);
-		}
-	}else if (event.type==SDL_EVENT_KEY_DOWN) {
-	}else if (event.type==SDL_EVENT_KEY_UP) {
-	}
 }
 
 static int main_loop() {
@@ -121,13 +88,12 @@ static int main_loop() {
     		if (event.type==SDL_EVENT_QUIT) {
     			shouldStop=true;
     		}
-
     		if (event.type==SDL_EVENT_WINDOW_RESIZED) {
     			auto* window=ApplicationContext::getInstance().get<SDL_Window*>("window");
     			SDL_GetWindowSize(window,&config.WINDOW_WIDTH,&config.WINDOW_HEIGHT);
     			ApplicationContext::getInstance().set<Config>("config",config);
     		}
-    		handleInput(event);
+    		InputMapping::handleInput(event);
     	}
     	EventBus::getInstance().consumeEvents();
     	lastTick=now;
@@ -166,11 +132,11 @@ static void testEvents() {
 	}
 }
 int main() {
-#if _WIN32
-	SetConsoleOutputCP(65001); // Set console to CP_UTF8
-#endif
+// #if _WIN32
+// 	SetConsoleOutputCP(65001); // Set console to CP_UTF8
+// #endif
 	init();
-	testEvents();
+	// testEvents();
 	main_loop();
 	return 0;
 }

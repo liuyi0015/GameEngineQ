@@ -1,0 +1,33 @@
+//
+// Created by XL0002 on 2026/10/13.
+//
+
+#ifndef GAMEENGINEQ_CAMERACONTROLSYSTEM_H
+#define GAMEENGINEQ_CAMERACONTROLSYSTEM_H
+#include "../../ecs/Entity.h"
+#include "../../ecs/System.h"
+#include "SDL3/SDL_events.h"
+
+
+class CameraControlSystem :public ecs::System{
+private:
+    Entity camera{};
+    size_t motionSubscribeId;
+    size_t keyboardSubscribeId;
+
+public:
+    CameraControlSystem();
+
+    ~CameraControlSystem() override;
+
+    void rotateCamera(const SDL_MouseMotionEvent &event);
+
+    void forwardCamera(const SDL_KeyboardEvent &event);
+
+    void update(double deltaTime) override{};
+    void fixed_update(double deltaTime) override{};
+    void draw() override{};
+};
+
+
+#endif //GAMEENGINEQ_CAMERACONTROLSYSTEM_H
