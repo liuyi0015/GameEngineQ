@@ -35,7 +35,7 @@ public:
 
     void draw(ecs::Scene *scene, SDL_GPUTexture *targetTexture, SDL_GPUCommandBuffer *commandBuffer, const std::unordered_map<Entity,
               DrawableGPUMesh>
-              &drawableMeshes);
+              &drawableMeshes, Entity camera);
 };
 
 

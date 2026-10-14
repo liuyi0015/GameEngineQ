@@ -9,7 +9,7 @@
 #include "PhysicsComponents.h"
 #include "box2d/box2d.h"
 #include "../../../BaseComponents.h"
-#include "../../../../transform/transform2d/Transform2DComponents.h"
+#include "../../../../transform/transform2d/Transform2D.h"
 #include "../../../Util.h"
 #include "../../../util/TransformSceneUtil.h"
 

@@ -4,7 +4,7 @@
 
 #ifndef GAMEENGINEQ_TRANSFORM3DUTIL_H
 #define GAMEENGINEQ_TRANSFORM3DUTIL_H
-#include "Transform3dComponents.h"
+#include "Transform3D.h"
 #include "glm/fwd.hpp"
 
 

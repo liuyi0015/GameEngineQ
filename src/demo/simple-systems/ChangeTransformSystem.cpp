@@ -7,7 +7,7 @@
 #include <cassert>
 
 #include "GameComponents.h"
-#include "../../transform/transform2d/Transform2DComponents.h"
+#include "../../transform/transform2d/Transform2D.h"
 #include "../../ecs/util/TransformSceneUtil.h"
 void ChangeTransformSystem::onFixedUpdate(double deltaTime) {
     assert(ecs::getComponent<Transform2DComp>(scene,curEntity)!=nullptr);

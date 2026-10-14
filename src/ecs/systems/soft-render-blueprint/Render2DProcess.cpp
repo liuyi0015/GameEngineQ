@@ -11,10 +11,11 @@
 #include "RenderComponents.h"
 #include "../../../core/ResourceManager.hpp"
 #include "../../../ecs/Util.h"
-#include "../../../soft-render/GpuSimulator.h"
-#include "../../../transform/transform2d/Transform2DComponents.h"
+#include "../../../renderer/soft-render/GpuSimulator.h"
+#include "../../../transform/transform2d/Transform2D.h"
 #include "../../util/TransformSceneUtil.h"
 #include "../../../transform/transform2d/Transform2DUtil.h"
+#include "../../../ecs/comps/RenderComponents.h"
 
 void Render2DProcess::initBuffers() {
     gpu->vert_buffers.push_back(new VertexBuffer());
@@ -52,7 +53,8 @@ static Uniform * collectUniform(ecs::Scene* scene,Entity entity,Entity camera) {
         );//没有投影但要坐标归一化
     //列向量约定
     auto mvpMatrix=projectMatrix*viewMatrix*modelMatrix;
-    auto texture= drawableFlag->material.surface;
+    auto* recipe= std::any_cast<SoftRecipe>(&drawableFlag->material.passRecipeMap["2dprocess"]);
+    SDL_Surface* texture=recipe->surface;
     auto* uniform=new Uniform2D();
     uniform->mvpMatrix=mvpMatrix;
     if (texture!=nullptr) {
@@ -85,11 +87,7 @@ void Render2DProcess::uploadData(ecs::Scene* scene) {
     }
 }
 
-void Render2DProcess::draw(ecs::Scene* scene) {
-    //目前只拿第一个摄像机
-    if (ecs::searchEntity<Camera2DComp>(scene).empty())return;
-    Entity camera=ecs::searchEntity<Camera2DComp>(scene)[0];
-    ColorBuffer* target=ecs::getComponent<Camera2DComp>(scene,camera)->target;
+void Render2DProcess::draw(ecs::Scene* scene,ColorBuffer* target,Entity camera) {
     //按pipeline分组排序
     //或者说先整体排序再分组
     std::vector<std::pair<int,Entity>> drawableEntities;

@@ -16,6 +16,11 @@ struct Transform2DComp {
     //父子物体只有变换关系，即有了Transform才有父子物体的概念。如果是Transform类型，就很难知道父物体是谁
     Entity* parent;
 };
+struct Transform3DComp {
+    Transform3D transform;
+    //父子物体只有变换关系，即有了Transform才有父子物体的概念。如果是Transform类型，就很难知道父物体是谁
+    std::optional<Entity> parent;
+};
 class TransformSceneUtil {
 public:
     static Transform2D computeWorldToLocalTransform(const Transform2D &worldTransform,

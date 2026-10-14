@@ -4,6 +4,7 @@
 
 #ifndef GAMEENGINEQ_SDLGPU_RENDERSYSTEM_H
 #define GAMEENGINEQ_SDLGPU_RENDERSYSTEM_H
+#include <string>
 #include <unordered_map>
 
 #include "../../System.h"
@@ -26,7 +27,10 @@ private:
     SDL_GPUDevice* device;
     SDL_Window *window;
     Render3DPass * render3dPass=nullptr;
+    //保存场景的顶点数据布局
     std::unordered_map<Entity, DrawableGPUMesh> drawableMeshes;
+
+    std::unordered_map<std::string, SDL_GPUTexture*> targets;
 public:
     explicit SdlGpuRenderSystem();
     void start() override;

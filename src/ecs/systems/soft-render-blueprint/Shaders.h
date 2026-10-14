@@ -5,7 +5,7 @@
 #ifndef GAMEENGINEQ_PIPELINES_H
 #define GAMEENGINEQ_PIPELINES_H
 
-#include "../../../soft-render/GpuSimulator.h"
+#include "../../../renderer/soft-render/GpuSimulator.h"
 
 
 class Default2DShader:public IShader {

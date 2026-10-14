@@ -7,10 +7,11 @@
 #include "Shaders.h"
 #include "RenderComponents.h"
 #include "../../../ecs/Util.h"
-#include "../../../transform/transform3d/Transform3dComponents.h"
+#include "../../../transform/transform3d/Transform3D.h"
 #include "../../../transform/transform3d/Transform3DUtil.h"
 #include "../../../core/ResourceManager.hpp"
 #include "../../util/TransformSceneUtil.h"
+#include "../../comps/RenderComponents.h"
 
 void Render3DProcess::initBuffers() {
     gpu->vert_buffers.push_back(new VertexBuffer());
@@ -41,7 +42,8 @@ static Uniform * collectUniform(ecs::Scene* scene,Entity entity,Entity camera) {
     auto viewMatrix = Transform3DUtil::getReverseTransformToMatrix(cameraWorldTransform);
     auto projectMatrix=Transform3DUtil::matProject(cameraComp->fov,cameraComp->a,cameraComp->nearZ,cameraComp->farZ);
     auto mvpMatrix=projectMatrix*viewMatrix*modelMatrix;
-    auto texture= drawableFlag->material.surface;
+    auto* recipe = std::any_cast<SoftRecipe>( &drawableFlag->material.passRecipeMap["3dprocess"]);
+    auto texture=recipe->surface;
     auto* uniform=new Uniform3D();
     uniform->mvpMatrix=mvpMatrix;
     if (texture!=nullptr) {
@@ -75,23 +77,8 @@ void Render3DProcess::uploadData(ecs::Scene* scene) {
     }
 }
 
-void Render3DProcess::draw(ecs::Scene* scene) {
-    //目前只拿第一个摄像机
-    if (ecs::searchEntity<Camera3DComp>(scene).empty())return;
-    Entity camera=ecs::searchEntity<Camera3DComp>(scene)[0];
-    ColorBuffer* target=ecs::getComponent<Camera3DComp>(scene,camera)->target;
-    //按pipeline分组排序
-    //或者说先整体排序再分组
-    std::vector<std::pair<int,Entity>> drawableEntities;
-    for (const auto entity:ecs::getEntities<Drawable3DFlag>(scene)) {
-        auto* drawableFlag = ecs::getComponent<Drawable3DFlag>(scene, entity);
-        if (drawableFlag!=nullptr) {
-            drawableEntities.push_back({drawableFlag->z_order,entity});
-        }
-    }
-    // sort by zOrder (ascending), stable to preserve insertion order for equal z
-    // std::stable_sort(drawableEntities.begin(), drawableEntities.end(),
-    //                  [](const auto &a, const auto &b){ return a.first < b.first; });
+void Render3DProcess::draw(ecs::Scene* scene,ColorBuffer* target,Entity camera) {
+    //按pipeline分组
     //绑定渲染目标
     RenderPass render_pass;
     render_pass.cur_target=target;
@@ -103,8 +90,7 @@ void Render3DProcess::draw(ecs::Scene* scene) {
     render_pass.edgeMode=true;//线框模式
     gpu->BeginRenderPass(render_pass);
     //顶点分组
-    for (int i=0;i<drawableEntities.size();i++) {
-        Entity entity=drawableEntities[i].second;
+    for ( const auto entity:ecs::getEntities<Drawable3DFlag>(scene)) {
         auto indexOffset=renderContext->indexOffsets[entity];
         auto indexCount=renderContext->indexCounts[entity];
         auto vertOffset=renderContext->vertOffsets[entity];

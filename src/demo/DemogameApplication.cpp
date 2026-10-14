@@ -22,6 +22,7 @@
 #include "../ecs/systems/anim/FrameTimeline.h"
 #include "../ecs/systems/render-chain/SdlGpuRenderSystem.h"
 #include "3d-systems/CameraControlSystem.h"
+#include "../ecs/comps/RenderComponents.h"
 // ecs::Scene *DemogameApplication::loadScene1() {
 //
 //     auto* scene=new ecs::Scene("scene1");
@@ -60,22 +61,35 @@ private:
             ecs::setComponent<ecs::Enabled>(this,img1_entity, ecs::Enabled{true});
             ecs::setComponent<Transform2DComp>(this,img1_entity, Transform2DComp{{{300,0}}});
             Shape2D rect=Shape2DBuilder::createRect({0,0},{988,852});
-            Mesh2D mesh;
-            for (auto & point : rect.points) {
-                VertexAttrib2D v{};
-                v.pos={point.x,point.y};
-                v.color={1,1,1,1};
-                mesh.vertices.push_back(v);
-            }
+            Mesh mesh;
+            VertexAttrib2D vs[4];
+
+            vs[0].pos={rect.points[0].x,rect.points[0].y};
+            vs[0].color={1,1,1,1};
             //注意是先横坐标x后纵坐标y
-            mesh.vertices[0].uv={0,0};//左上
-            mesh.vertices[1].uv={1,0};//右上
-            mesh.vertices[2].uv={1,1};//右下
-            mesh.vertices[3].uv={0,1};//左下
+            vs[0].uv={0,0};//左上
+            mesh.vertices.push_back(vs[0]);
+
+            vs[1].pos={rect.points[1].x,rect.points[1].y};
+            vs[1].color={1,1,1,1};
+            vs[1].uv={1,0};//右上
+            mesh.vertices.push_back(vs[1]);
+
+            vs[2].pos={rect.points[2].x,rect.points[2].y};
+            vs[2].color={1,1,1,1};
+            vs[2].uv={1,1};//右下
+            mesh.vertices.push_back(vs[2]);
+
+            vs[3].pos={rect.points[3].x,rect.points[3].y};
+            vs[3].color={1,1,1,1};
+            vs[3].uv={0,1};//左下
+            mesh.vertices.push_back(vs[3]);
             mesh.indices=rect.indices;
             auto* img1_surface=ResourceManager::getInstance().getSurfaceCache().get("img1-tex");
             //todo 目前pipeline写死在render2dProcess，这里配置无效
-            Material material={"img1-pipeline",{255,255,255,255},img1_surface};
+            SoftRecipe recipe={"img1-pipeline",{255,255,255,255},img1_surface};
+            Material material;
+            material.passRecipeMap["2dpass"] = recipe;
             ecs::setComponent<Drawable2DFlag>(this,img1_entity,Drawable2DFlag{0,material,mesh});
 
             // ecs::setComponent<RotationFlag>(this,img1_entity,{-40.0f});
@@ -83,7 +97,10 @@ private:
             AnimationClip animClip;
             animClip.duration=1;
             animClip.loop=true;
-            auto* frame_timeline=new FrameTimeline("anim1",&ecs::getComponent<Drawable2DFlag>(this,img1_entity)->material.surface);
+            //拿组件里的地址而不是源数据地址，注意取地址符
+            SoftRecipe * materialPtrOnDrawable = std::any_cast<SoftRecipe>(
+                &ecs::getComponent<Drawable2DFlag>(this,img1_entity)->material.passRecipeMap["2dpass"]);
+            auto* frame_timeline=new FrameTimeline("anim1",&materialPtrOnDrawable->surface);
             animClip.timelines.push_back(std::shared_ptr<FrameTimeline>(frame_timeline));
             animFlag.anims.push_back(animClip);
             ecs::setComponent<AnimationFlag>(this,img1_entity,animFlag);
@@ -94,8 +111,7 @@ private:
             Entity camera1=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,camera1, ecs::Enabled{true});
             ecs::setComponent<Transform2DComp>(this,camera1,Transform2DComp{});
-            auto* target=new ColorBuffer(800,600);
-            ecs::setComponent<Camera2DComp>(this,camera1,{1200,1080,target});
+            ecs::setComponent<Camera2DComp>(this,camera1,{1200,1080});
 
             // ecs::setComponent<CameraInputListenerFlag>(this, camera1, {});
             // auto* cameraInputListenerSystem=new CameraInputListenerSystem(this);
@@ -143,56 +159,94 @@ private:
         auto* img1=IMG_Load("assets/1.png");
             ResourceManager::getInstance().getSurfaceCache().set("img1-tex",img1);
     }
-    void loadContent() {
+    void loadContent(CameraControlSystem* cameraControlSystem) {
         {
             Entity cube=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,cube, ecs::Enabled{true});
             ecs::setComponent<Transform3DComp>(this,cube,Transform3DComp{{{0,0,-5},
                 {30,45,30},{100,100,100}}});
             Shape3D shape=Shape3DBuilder::createCube();
-            Mesh3D mesh;
-            for (auto& point : shape.points) {
-                VertexAttrib3D v{};
-                v.pos={point.x,point.y,point.z};
-                v.color={1,1,1,1};
-                mesh.vertices.push_back(v);
-            }
-            //注意是先横坐标x后纵坐标y
-            mesh.vertices[0].uv={0,0};//左上
-            mesh.vertices[1].uv={1,0};//右上
-            mesh.vertices[2].uv={1,1};//右下
-            mesh.vertices[3].uv={0,1};//左下
+            Mesh mesh;
+            VertexAttrib3D vs[8];
 
-            mesh.vertices[4].uv={0,0};//左上
-            mesh.vertices[5].uv={1,0};//右上
-            mesh.vertices[6].uv={1,1};//右下
-            mesh.vertices[7].uv={0,1};//左下
+                vs[0].pos={shape.points[0].x,shape.points[0].y,shape.points[0].z};
+                vs[0].color={1,1,1,1};
+            //注意是先横坐标x后纵坐标y
+            vs[0].uv={0,0};//左上
+                mesh.vertices.push_back(vs[0]);
+
+            vs[1].pos={shape.points[1].x,shape.points[1].y,shape.points[1].z};
+            vs[1].color={1,1,1,1};
+            vs[1].uv={1,0};//右上
+            mesh.vertices.push_back(vs[1]);
+
+            vs[2].pos={shape.points[2].x,shape.points[2].y,shape.points[2].z};
+            vs[2].color={1,1,1,1};
+            vs[2].uv={1,1};//右下
+            mesh.vertices.push_back(vs[2]);
+
+            vs[3].pos={shape.points[3].x,shape.points[3].y,shape.points[3].z};
+            vs[3].color={1,1,1,1};
+            vs[3].uv={0,1};//左下
+            mesh.vertices.push_back(vs[3]);
+
+            vs[4].pos={shape.points[4].x,shape.points[4].y,shape.points[4].z};
+            vs[4].color={1,1,1,1};
+            vs[4].uv={0,0};//左上
+            mesh.vertices.push_back(vs[4]);
+
+            vs[5].pos={shape.points[5].x,shape.points[5].y,shape.points[5].z};
+            vs[5].color={1,1,1,1};
+            vs[5].uv={1,0};//右上
+            mesh.vertices.push_back(vs[5]);
+
+            vs[6].pos={shape.points[6].x,shape.points[6].y,shape.points[6].z};
+            vs[6].color={1,1,1,1};
+            vs[6].uv={1,1};//右下
+            mesh.vertices.push_back(vs[6]);
+
+            vs[7].pos={shape.points[7].x,shape.points[7].y,shape.points[7].z};
+            vs[7].color={1,1,1,1};
+            vs[7].uv={0,1};//左下
+            mesh.vertices.push_back(vs[7]);
             mesh.indices=shape.indices;
-            Material material=Material{"3d_pipeline",{255,255,255,255},nullptr};
-            ecs::setComponent<Drawable3DFlag>(this,cube,Drawable3DFlag{0,material,mesh});
+            SoftRecipe recipe=SoftRecipe{"3d_pipeline",{255,255,255,255},nullptr};
+            Material material;
+            material.passRecipeMap["3dpass"] = recipe;
+            ecs::setComponent<Drawable3DFlag>(this,cube,Drawable3DFlag{material,mesh});
         }
         {
-
             Entity camera2=ecs::createEntity(this);
             ecs::setComponent<ecs::Enabled>(this,camera2, ecs::Enabled{true});
             ecs::setComponent<Transform3DComp>(this,camera2,Transform3DComp{{{},{0,180,0}}});
-            //旋转
             ecs::setComponent<Rotation3DFlag>(this,camera2,Rotation3DFlag{10,10,10});
+            ecs::setComponent<Camera3DComp>(this,camera2,{glm::radians(60.0f),1.0f/1,-1,-1000});
 
-            auto* target=new ColorBuffer(800,600);
-            ecs::setComponent<Camera3DComp>(this,camera2,{target,glm::radians(60.0f),1.0f/1,-1,-1000});
+            cameraControlSystem->camera=camera2;
         }
     }
 public:
-    Scene2(ChangeTransform3DSystem* changeTransform3dSystem,SoftRenderSystem* renderSystem,CameraControlSystem* cameraControlSystem){
+    //gpu渲染
+
+    Scene2(ChangeTransform3DSystem* changeTransform3dSystem,SdlGpuRenderSystem* renderSystem,CameraControlSystem* cameraControlSystem){
         {
             // ecs::addSystem(this, changeTransform3dSystem, {});
             ecs::addSystem(this, renderSystem, {});
             ecs::addSystem(this, cameraControlSystem, {});
         }
         loadResources();
-        loadContent();
+        loadContent(cameraControlSystem);
 
+    }
+    //软渲染
+    Scene2(ChangeTransform3DSystem* changeTransform3dSystem,SoftRenderSystem* renderSystem,CameraControlSystem* cameraControlSystem) {
+        {
+            // ecs::addSystem(this, changeTransform3dSystem, {});
+            ecs::addSystem(this, renderSystem, {});
+            ecs::addSystem(this, cameraControlSystem, {});
+        }
+        loadResources();
+        loadContent(cameraControlSystem);
     }
     ~Scene2() {
         std::cout<<"析构Scene2"<<std::endl;
@@ -212,7 +266,7 @@ void DemogameApplication::init() {
     auto* changeTransform3dSystem=new ChangeTransform3DSystem();
     auto* cameraControlSystem=new CameraControlSystem();
     ecs::Scene* scene1=new Scene1(print_system1,print_system2,changeTransformSystem,animationSystem,softRenderSystem);
-    ecs::Scene* scene2=new Scene2(changeTransform3dSystem,softRenderSystem,cameraControlSystem);
+    ecs::Scene* scene2=new Scene2(changeTransform3dSystem,sdlgpuRenderSystem,cameraControlSystem);
     scene=scene2;
 	AudioPlayer::loadAndPlay("assets/2.mp3");
     scene->init();

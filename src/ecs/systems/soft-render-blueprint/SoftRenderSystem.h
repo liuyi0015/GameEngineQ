@@ -7,7 +7,7 @@
 #include "Render3DProcess.h"
 #include "RenderCompositorProcess.h"
 #include "../../System.h"
-#include "../../../soft-render/GpuSimulator.h"
+#include "../../../renderer/soft-render/GpuSimulator.h"
 
 class SoftRenderSystem: public ecs::System {
 private:
@@ -16,7 +16,7 @@ private:
     Render2DProcess * render2dProcess=nullptr;
     RenderCompositorProcess * renderCompositorProcess=nullptr;
     Render3DProcess * render3dProcess=nullptr;
-
+    std::unordered_map<std::string,ColorBuffer*> targets;
 public:
     explicit SoftRenderSystem();
     void start() override;

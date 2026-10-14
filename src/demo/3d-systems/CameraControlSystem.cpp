@@ -7,7 +7,8 @@
 #include "SDL3/SDL_events.h"
 #include "../../core/EventBus.h"
 #include "../../ecs/Util.h"
-#include "../../transform/transform3d/Transform3dComponents.h"
+#include "../../transform/transform3d/Transform3D.h"
+#include "../../ecs/util/TransformSceneUtil.h"
 CameraControlSystem::CameraControlSystem() {
     motionSubscribeId=EventBus::getInstance().subscribe("input.mousemotion", [this](std::any param) {
         SDL_MouseMotionEvent event = std::any_cast<const SDL_MouseMotionEvent&>(param);
@@ -22,7 +23,7 @@ CameraControlSystem::~CameraControlSystem() {
     EventBus::getInstance().unsubscribe(motionSubscribeId);
     EventBus::getInstance().unsubscribe(keyboardSubscribeId);
 }
-
+//只有上下左右，没有面顺面反
 void CameraControlSystem::rotateCamera(const SDL_MouseMotionEvent& event) {
     //根据鼠标移动更新摄像机的朝向
     //这里可以使用摄像机的旋转矩阵或者四元数来更新朝向
@@ -37,6 +38,9 @@ void CameraControlSystem::rotateCamera(const SDL_MouseMotionEvent& event) {
 }
 void CameraControlSystem::forwardCamera(const SDL_KeyboardEvent& event) {
     float speed = 100.0f;
+    //todo 获取朝向向量
+
+
     // 根据键盘事件更新摄像机位置
     if (event.type == SDL_EVENT_KEY_DOWN) {
         if (event.key == SDLK_W) {

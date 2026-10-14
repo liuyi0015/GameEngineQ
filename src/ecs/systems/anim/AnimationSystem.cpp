@@ -6,7 +6,7 @@
 
 #include <cassert>
 
-#include "../soft-render-blueprint/RenderComponents.h"
+#include "../../comps/RenderComponents.h"
 
 
 void AnimationSystem::onStart() {

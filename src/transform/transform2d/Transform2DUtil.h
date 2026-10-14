@@ -4,7 +4,7 @@
 
 #ifndef GAMEENGINE_TRANSFORMUTIL_H
 #define GAMEENGINE_TRANSFORMUTIL_H
-#include "Transform2DComponents.h"
+#include "Transform2D.h"
 #include "glm/fwd.hpp"
 #include "glm/detail/type_mat3x3.hpp"
 

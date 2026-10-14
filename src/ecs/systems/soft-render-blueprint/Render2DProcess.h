@@ -6,7 +6,7 @@
 #define GAMEENGINE_RENDERSYSTEM_H
 #include <utility>
 
-#include "../../../soft-render/GpuSimulator.h"
+#include "../../../renderer/soft-render/GpuSimulator.h"
 #include "../../../core/Context.hpp"
 #include "../../../ecs/BaseComponents.h"
 #include "../../../ecs/System.h"
@@ -27,7 +27,7 @@ public:
     void initBuffers();
     void registerPipelines();
     void uploadData(ecs::Scene *scene);
-    void draw(ecs::Scene *scene) ;
+    void draw(ecs::Scene *scene, ColorBuffer *target, Entity camera) ;
     void endFrame();
 };
 

@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "../../../ecs/System.h"
-#include "../../../soft-render/GpuSimulator.h"
+#include "../../../renderer/soft-render/GpuSimulator.h"
 #include "../../../core/Context.hpp"
 #include "RenderContext.h"
 struct VertexCompose {

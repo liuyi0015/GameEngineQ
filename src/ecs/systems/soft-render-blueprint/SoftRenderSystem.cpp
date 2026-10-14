@@ -8,6 +8,7 @@
 #include "RenderComponents.h"
 #include "../../Util.h"
 #include "../../../core/Context.hpp"
+#include "../../comps/RenderComponents.h"
 
 SoftRenderSystem::SoftRenderSystem(){
     SDL_Window* window=ApplicationContext::getInstance().get<SDL_Window*>("window");
@@ -35,21 +36,23 @@ void SoftRenderSystem::start() {
 
 void SoftRenderSystem::draw() {
     renderCompositorProcess->srcs.clear();
-    for (Entity camera2d:ecs::searchEntity<Camera2DComp>(scene)) {
-        ColorBuffer* target=ecs::getComponent<Camera2DComp>(scene,camera2d)->target;
-        renderCompositorProcess->srcs.push_back(target);
-    }
-    for (Entity camera3d:ecs::searchEntity<Camera3DComp>(scene)) {
-        ColorBuffer* target=ecs::getComponent<Camera3DComp>(scene,camera3d)->target;
-        renderCompositorProcess->srcs.push_back(target);
-    }
     //2d
     render2dProcess->uploadData(scene);
-    render2dProcess->draw(scene);
+    for (Entity camera2d:ecs::searchEntity<Camera2DComp>(scene)) {
+        std::string targetName=ecs::getComponent<Camera2DComp>(scene,camera2d)->targetName;
+        ColorBuffer* target=targets[targetName];
+        renderCompositorProcess->srcs.push_back(target);
+        render2dProcess->draw(scene,target,camera2d);
+    }
     render2dProcess->endFrame();
     //3d
     render3dProcess->uploadData(scene);
-    render3dProcess->draw(scene);
+    for (Entity camera3d:ecs::searchEntity<Camera3DComp>(scene)) {
+        std::string targetName=ecs::getComponent<Camera3DComp>(scene,camera3d)->targetName;
+        ColorBuffer* target=targets[targetName];
+        renderCompositorProcess->srcs.push_back(target);
+        render3dProcess->draw(scene,target,camera3d);
+    }
     render3dProcess->endFrame();
     //ui
     //合成器

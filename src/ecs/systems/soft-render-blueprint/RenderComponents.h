@@ -8,11 +8,11 @@
 #include <vector>
 #include "SDL3/SDL_pixels.h"
 #include "glm/glm.hpp"
-#include "../../../soft-render/GpuSimulator.h"
+#include "../../../renderer/soft-render/GpuSimulator.h"
 
 
 //后面可能分成不同的材质类型
-struct Material {
+struct SoftRecipe {
     std::string pipeline_name;
     SDL_Color color;
     SDL_Surface* surface;
@@ -73,31 +73,4 @@ struct UniformLight3D:Uniform {
         delete texture;
     }
 };
-//通道相关
-struct Camera2DComp {
-    float captureWidth;
-    float captureHeight;
-    ColorBuffer* target;
-};
-//绘制声明，和资源声明互不干扰
-struct Drawable2DFlag {
-    int z_order = 0;
-    Material material;
-    Mesh2D mesh;
-};
-struct Camera3DComp {
-    ColorBuffer* target;
-    //垂直视场角
-    float fov;
-    //视锥宽高比
-    float a;
-    float nearZ;
-    float farZ;
-};
-struct Drawable3DFlag {
-    int z_order = 0;
-    Material material;
-    Mesh3D mesh;
-};
-
 #endif //GAMEENGINE_RENDERCOMPONENTS_H

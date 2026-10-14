@@ -3,7 +3,7 @@
 //
 
 #include "ChangeTransform3DSystem.h"
-#include "../../transform/transform3d/Transform3dComponents.h"
+#include "../../ecs/util/TransformSceneUtil.h"
 
 void ChangeTransform3DSystem::onFixedUpdate(double deltaTime) {
     MonoBehaviourSystem<Rotation3DFlag>::onFixedUpdate(deltaTime);

@@ -11,11 +11,11 @@
 
 class CameraControlSystem :public ecs::System{
 private:
-    Entity camera{};
     size_t motionSubscribeId;
     size_t keyboardSubscribeId;
 
 public:
+    Entity camera{};
     CameraControlSystem();
 
     ~CameraControlSystem() override;

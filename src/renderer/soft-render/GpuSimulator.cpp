@@ -7,8 +7,8 @@
 #include "glm/glm.hpp"
 #include "SDL3/SDL_render.h"
 #include "SDL3/SDL_surface.h"
-#include "../graphics/Shape2DBuilder.h"
-#include "../transform/transform3d/Transform3DUtil.h"
+#include "../../graphics/Shape2DBuilder.h"
+#include "../../transform/transform3d/Transform3DUtil.h"
 
 //深度缓存
 static float depth[10000][10000];

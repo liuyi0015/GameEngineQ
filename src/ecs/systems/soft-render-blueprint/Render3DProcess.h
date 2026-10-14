@@ -5,7 +5,7 @@
 #ifndef GAMEENGINEQ_RENDER3DPROCESS_H
 #define GAMEENGINEQ_RENDER3DPROCESS_H
 
-#include "../../../soft-render/GpuSimulator.h"
+#include "../../../renderer/soft-render/GpuSimulator.h"
 #include "../../../core/Context.hpp"
 #include "../../../ecs/BaseComponents.h"
 #include "../../../ecs/System.h"
@@ -30,7 +30,7 @@ public:
     void registerPipelines() ;
     void initBuffers();
     void uploadData(ecs::Scene *scene);
-    void draw(ecs::Scene *scene);
+    void draw(ecs::Scene *scene, ColorBuffer *target, Entity camera);
     void endFrame();
 };
 

@@ -6,7 +6,7 @@
 
 #include <iostream>
 #include <vector>
-
+#include<any>
 #include "SDL3/SDL_gpu.h"
 
 
@@ -153,8 +153,13 @@ static void uploadToBuffer(SDL_GPUDevice *device,SDL_GPUBuffer* buffer,size_t ds
     SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
 }
 
-static SDL_GPUBuffer *uploadColor3DVertexToNewBuffer(SDL_GPUDevice *device, std::vector<void*> vertices) {
-
+static SDL_GPUBuffer *uploadColor3DVertexToNewBuffer(SDL_GPUDevice *device,const std::vector<std::any>& vertices) {
+    //解包，构造Color3DVertex数组（修改内存布局）
+    std::vector<ColorVertex3D> tmp;
+    tmp.reserve(vertices.size());
+    for (auto &a : vertices) {
+        tmp.push_back(std::any_cast<ColorVertex3D>(a));
+    }
     //创建顶点缓冲区
     SDL_GPUBufferCreateInfo vertBufferInfo = {
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
@@ -162,10 +167,10 @@ static SDL_GPUBuffer *uploadColor3DVertexToNewBuffer(SDL_GPUDevice *device, std:
     };
     auto vertexBuffer=SDL_CreateGPUBuffer(device, &vertBufferInfo);
     //上传顶点
-    uploadToBuffer(device,vertexBuffer,0,(void*)vertices.data(),vertices.size()*sizeof(ColorVertex3D));
+    uploadToBuffer(device,vertexBuffer,0,(void*)tmp.data(),tmp.size()*sizeof(ColorVertex3D));
     return vertexBuffer;
 }
-static SDL_GPUBuffer *uploadIndexToNewBuffer(SDL_GPUDevice *device, std::vector<Indice> indices) {
+static SDL_GPUBuffer *uploadIndexToNewBuffer(SDL_GPUDevice *device, const std::vector<Indice>& indices) {
 
     //创建索引缓冲区
     SDL_GPUBufferCreateInfo indexBufferInfo = {
@@ -181,7 +186,7 @@ static SDL_GPUBuffer *uploadIndexToNewBuffer(SDL_GPUDevice *device, std::vector<
 
 #include "../../util/TransformSceneUtil.h"
 #include "../../Util.h"
-#include "../../../gpu-render/RenderComponents.h"
+#include "../../../ecs/comps/RenderComponents.h"
 
 static MVP collectMVP(ecs::Scene* scene,Entity entity,Entity camera) {
     auto drawableFlag= ecs::getComponent<Drawable3DFlag>(scene, entity);
@@ -202,7 +207,7 @@ Render3DPass::Render3DPass(SDL_GPUDevice *device, SDL_Window *window):device(dev
 }
 void Render3DPass::uploadData(ecs::Scene *scene,std::unordered_map<Entity, DrawableGPUMesh>& drawableMeshes) {
     size_t offset1 = 0, offset2 = 0;
-    for (const auto entity:ecs::getEntities<Drawable3DFlag>(scene)) {
+    for (const Entity entity:ecs::getEntities<Drawable3DFlag>(scene)) {
         auto* drawableFlag= ecs::getComponent<Drawable3DFlag>(scene, entity);
         // drawableMeshes.insert({entity, DrawableGPUMesh{}});
         //上传顶点
@@ -219,10 +224,7 @@ void Render3DPass::uploadData(ecs::Scene *scene,std::unordered_map<Entity, Drawa
     }
 }
 void Render3DPass::draw(ecs::Scene *scene,SDL_GPUTexture* targetTexture,SDL_GPUCommandBuffer* commandBuffer,
-    const std::unordered_map<Entity,DrawableGPUMesh>& drawableMeshes) {
-    if (ecs::searchEntity<Camera3DComp>(scene).empty())return;
-    //目前只拿第一个摄像机
-    Entity camera=ecs::searchEntity<Camera3DComp>(scene)[0];
+    const std::unordered_map<Entity,DrawableGPUMesh>& drawableMeshes,Entity camera) {
 
     // 定义颜色目标，渲染过程颜色目标 = “这次实际渲染要写到哪个纹理，怎么清空和保存”
     SDL_GPUColorTargetInfo colorTargetInfo = {

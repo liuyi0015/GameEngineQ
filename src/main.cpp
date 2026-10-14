@@ -12,7 +12,6 @@
 #include "core/EventBus.h"
 #include "demo/DemogameApplication.h"
 #include "input/InputMapping.h"
-#include "soft-render/GpuSimulator.h"
 
 #if _WIN32
 	#include <windows.h>
