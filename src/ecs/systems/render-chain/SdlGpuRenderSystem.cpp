@@ -17,11 +17,12 @@ SdlGpuRenderSystem::SdlGpuRenderSystem() {
     window=ApplicationContext::getInstance().get<SDL_Window*>("window");
     SDL_ClaimWindowForGPUDevice(device,window);
     render3dPass=new Render3DPass(device,window);
+    upload3dPass=new Upload3DPass(device);
 }
 
 void SdlGpuRenderSystem::start() {
     assert(scene!=nullptr);
-    render3dPass->uploadData(scene, drawableMeshes);
+    upload3dPass->uploadData(scene, drawableMeshes);
 }
 void SdlGpuRenderSystem::draw() {
     assert(scene!=nullptr);
@@ -34,6 +35,7 @@ void SdlGpuRenderSystem::draw() {
     if (targets["swapchain"] == nullptr) {
         //这里不能抛异常退出，因为窗口最小化就会进入这里
         // SDL_Log("没有交换链纹理！");
+        return;
     }
     if (ecs::searchEntity<Camera3DComp>(scene).empty())return;
     //目前只拿第一个摄像机

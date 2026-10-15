@@ -9,7 +9,7 @@
 #include "../../ecs/Util.h"
 #include "../../transform/transform3d/Transform3D.h"
 #include "../../ecs/util/TransformSceneUtil.h"
-CameraControlSystem::CameraControlSystem() {
+void CameraControlSystem::start() {
     motionSubscribeId=EventBus::getInstance().subscribe("input.mousemotion", [this](std::any param) {
         SDL_MouseMotionEvent event = std::any_cast<const SDL_MouseMotionEvent&>(param);
         rotateCamera(event);
@@ -19,10 +19,12 @@ CameraControlSystem::CameraControlSystem() {
         forwardCamera(event);
     });
 }
-CameraControlSystem::~CameraControlSystem() {
+
+void CameraControlSystem::end() {
     EventBus::getInstance().unsubscribe(motionSubscribeId);
     EventBus::getInstance().unsubscribe(keyboardSubscribeId);
 }
+
 //只有上下左右，没有面顺面反
 void CameraControlSystem::rotateCamera(const SDL_MouseMotionEvent& event) {
     //根据鼠标移动更新摄像机的朝向

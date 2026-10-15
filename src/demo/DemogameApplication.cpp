@@ -23,6 +23,7 @@
 #include "../ecs/systems/render-chain/SdlGpuRenderSystem.h"
 #include "3d-systems/CameraControlSystem.h"
 #include "../ecs/comps/RenderComponents.h"
+#include "../ecs/systems/render-chain/Render3DPass.h"
 // ecs::Scene *DemogameApplication::loadScene1() {
 //
 //     auto* scene=new ecs::Scene("scene1");
@@ -113,10 +114,6 @@ private:
             ecs::setComponent<Transform2DComp>(this,camera1,Transform2DComp{});
             ecs::setComponent<Camera2DComp>(this,camera1,{1200,1080});
 
-            // ecs::setComponent<CameraInputListenerFlag>(this, camera1, {});
-            // auto* cameraInputListenerSystem=new CameraInputListenerSystem(this);
-            // ecs::addSystem(this,cameraInputListenerSystem,{});
-
         }
     }
     void loadResources() {
@@ -148,6 +145,22 @@ public:
         loadContent();
 
     }
+    Scene1(PrintSystem* printSystem1,PrintSystem* printSystem2,ChangeTransformSystem* changeTransformSystem,
+        AnimationSystem* animationSystem,SdlGpuRenderSystem* renderSystem) {
+        {
+
+            //普通system
+            ecs::addSystem(this,changeTransformSystem,{});
+            //顺序test
+            ecs::addSystem(this,printSystem1,{10,0,0,0});
+            ecs::addSystem(this,printSystem2,{});
+            ecs::addSystem(this, renderSystem, {});
+            ecs::addSystem(this,animationSystem,{});
+        }
+        loadResources();
+        loadContent();
+
+    }
     ~Scene1() {
         std::cout<<"析构Scene1"<<std::endl;
     }
@@ -167,47 +180,46 @@ private:
                 {30,45,30},{100,100,100}}});
             Shape3D shape=Shape3DBuilder::createCube();
             Mesh mesh;
-            VertexAttrib3D vs[8];
-
+            ColorVertex3D vs[8];
                 vs[0].pos={shape.points[0].x,shape.points[0].y,shape.points[0].z};
-                vs[0].color={1,1,1,1};
+                vs[0].color={1,1,0,1};
             //注意是先横坐标x后纵坐标y
-            vs[0].uv={0,0};//左上
+            // vs[0].uv={0,0};//左上
                 mesh.vertices.push_back(vs[0]);
 
             vs[1].pos={shape.points[1].x,shape.points[1].y,shape.points[1].z};
-            vs[1].color={1,1,1,1};
-            vs[1].uv={1,0};//右上
+            vs[1].color={1,0,1,1};
+            // vs[1].uv={1,0};//右上
             mesh.vertices.push_back(vs[1]);
 
             vs[2].pos={shape.points[2].x,shape.points[2].y,shape.points[2].z};
-            vs[2].color={1,1,1,1};
-            vs[2].uv={1,1};//右下
+            vs[2].color={0,1,1,1};
+            // vs[2].uv={1,1};//右下
             mesh.vertices.push_back(vs[2]);
 
             vs[3].pos={shape.points[3].x,shape.points[3].y,shape.points[3].z};
             vs[3].color={1,1,1,1};
-            vs[3].uv={0,1};//左下
+            // vs[3].uv={0,1};//左下
             mesh.vertices.push_back(vs[3]);
 
             vs[4].pos={shape.points[4].x,shape.points[4].y,shape.points[4].z};
-            vs[4].color={1,1,1,1};
-            vs[4].uv={0,0};//左上
+            vs[4].color={0,0,1,1};
+            // vs[4].uv={0,0};//左上
             mesh.vertices.push_back(vs[4]);
 
             vs[5].pos={shape.points[5].x,shape.points[5].y,shape.points[5].z};
-            vs[5].color={1,1,1,1};
-            vs[5].uv={1,0};//右上
+            vs[5].color={0,1,0,1};
+            // vs[5].uv={1,0};//右上
             mesh.vertices.push_back(vs[5]);
 
             vs[6].pos={shape.points[6].x,shape.points[6].y,shape.points[6].z};
-            vs[6].color={1,1,1,1};
-            vs[6].uv={1,1};//右下
+            vs[6].color={1,0,0,1};
+            // vs[6].uv={1,1};//右下
             mesh.vertices.push_back(vs[6]);
 
             vs[7].pos={shape.points[7].x,shape.points[7].y,shape.points[7].z};
-            vs[7].color={1,1,1,1};
-            vs[7].uv={0,1};//左下
+            vs[7].color={0,0,0,1};
+            // vs[7].uv={0,1};//左下
             mesh.vertices.push_back(vs[7]);
             mesh.indices=shape.indices;
             SoftRecipe recipe=SoftRecipe{"3d_pipeline",{255,255,255,255},nullptr};
@@ -220,7 +232,7 @@ private:
             ecs::setComponent<ecs::Enabled>(this,camera2, ecs::Enabled{true});
             ecs::setComponent<Transform3DComp>(this,camera2,Transform3DComp{{{},{0,180,0}}});
             ecs::setComponent<Rotation3DFlag>(this,camera2,Rotation3DFlag{10,10,10});
-            ecs::setComponent<Camera3DComp>(this,camera2,{glm::radians(60.0f),1.0f/1,-1,-1000});
+            ecs::setComponent<Camera3DComp>(this,camera2,{glm::radians(60.0f),1.0f/1,-1,-1000,"swapchain"});
 
             cameraControlSystem->camera=camera2;
         }
@@ -230,7 +242,7 @@ public:
 
     Scene2(ChangeTransform3DSystem* changeTransform3dSystem,SdlGpuRenderSystem* renderSystem,CameraControlSystem* cameraControlSystem){
         {
-            // ecs::addSystem(this, changeTransform3dSystem, {});
+            ecs::addSystem(this, changeTransform3dSystem, {});
             ecs::addSystem(this, renderSystem, {});
             ecs::addSystem(this, cameraControlSystem, {});
         }

@@ -11,19 +11,17 @@
 
 class CameraControlSystem :public ecs::System{
 private:
-    size_t motionSubscribeId;
-    size_t keyboardSubscribeId;
+    size_t motionSubscribeId{};
+    size_t keyboardSubscribeId{};
 
 public:
     Entity camera{};
-    CameraControlSystem();
-
-    ~CameraControlSystem() override;
 
     void rotateCamera(const SDL_MouseMotionEvent &event);
 
     void forwardCamera(const SDL_KeyboardEvent &event);
-
+    void start() override;
+    void end() override;
     void update(double deltaTime) override{};
     void fixed_update(double deltaTime) override{};
     void draw() override{};

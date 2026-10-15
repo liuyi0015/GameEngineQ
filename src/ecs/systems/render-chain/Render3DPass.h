@@ -17,11 +17,6 @@ struct MVP {
     glm::mat4 view;
     glm::mat4 proj;
 };
-struct ColorVertex3D {
-    glm::vec3 position;
-    glm::vec4 color;
-};
-using Indice=glm::ivec3;
 class Render3DPass {
 private:
     SDL_GPUDevice* device;
@@ -31,7 +26,6 @@ public:
     Render3DPass(SDL_GPUDevice *device, SDL_Window *window);
     ~Render3DPass()= default;
 
-    void uploadData(ecs::Scene *scene, std::unordered_map<Entity, DrawableGPUMesh> &drawableMeshes);
 
     void draw(ecs::Scene *scene, SDL_GPUTexture *targetTexture, SDL_GPUCommandBuffer *commandBuffer, const std::unordered_map<Entity,
               DrawableGPUMesh>
